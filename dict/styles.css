@@ -5,6 +5,7 @@
     font-family: 'Georgia', serif;
 }
 
+/* ===== ОСНОВНЫЕ СТИЛИ ===== */
 body {
     background: #fef9e7;
     display: flex;
@@ -31,6 +32,7 @@ body {
     flex-direction: column;
 }
 
+/* ===== ШАПКА ===== */
 .book-header {
     background: #2e7d32;
     color: white;
@@ -52,6 +54,7 @@ body {
     font-size: 1rem;
 }
 
+/* ===== БОКОВАЯ ПАНЕЛЬ ===== */
 .bookmarks-sidebar {
     width: 220px;
     background: #f8f5ec;
@@ -91,6 +94,7 @@ body {
     text-align: center; 
 }
 
+/* ===== СТРАНИЦЫ ===== */
 .page {
     display: none;
     padding: 30px;
@@ -113,6 +117,7 @@ body {
     gap: 15px;
 }
 
+/* ===== ФОРМЫ И ВВОД ===== */
 .form-group { 
     margin-bottom: 20px; 
 }
@@ -151,6 +156,7 @@ input:focus, select:focus, textarea:focus {
     box-shadow: 0 0 0 3px rgba(46,125,50,0.2);
 }
 
+/* ===== КНОПКИ ===== */
 .btn {
     background: #2e7d32;
     color: white;
@@ -175,6 +181,48 @@ input:focus, select:focus, textarea:focus {
     background: #5a6268; 
 }
 
+.delete-btn {
+    background: #c62828;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.delete-word-btn {
+    background: #f8f5ec;
+    color: #888;
+    border: 1px solid #e0d9c0;
+    border-radius: 6px;
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 0 auto;
+    width: auto;
+    max-width: 200px;
+    opacity: 0.8;
+    order: 2;
+}
+
+.delete-word-btn:hover {
+    background: #e8e0c9;
+    color: #5a5a5a;
+    opacity: 1;
+    transform: translateY(-1px);
+}
+
+.delete-word-btn:active {
+    transform: translateY(0);
+}
+
+/* ===== РЕЗУЛЬТАТЫ ПОИСКА ===== */
 #searchResult { 
     margin-top: 25px; 
     padding: 25px; 
@@ -191,6 +239,7 @@ input:focus, select:focus, textarea:focus {
     box-shadow: 0 3px 10px rgba(0,0,0,0.05);
 }
 
+/* ===== ТАБЛИЦЫ ===== */
 .table-container {
     max-height: 400px;
     overflow-y: auto;
@@ -231,57 +280,7 @@ tr:hover {
     gap: 10px; 
 }
 
-.delete-btn {
-    background: #c62828;
-    color: white;
-    border: none;
-    padding: 8px 14px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background 0.3s;
-}
-
-/* Новые стили для кнопки удаления под карточкой */
-.delete-word-btn {
-    background: #f8f5ec;
-    color: #888;
-    border: 1px solid #e0d9c0;
-    border-radius: 6px;
-    padding: 10px 20px;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    margin: 0 auto;
-    width: auto;
-    max-width: 200px;
-    opacity: 0.8;
-    order: 2; /* Убедимся, что кнопка идет после карточки */
-}
-
-.delete-word-btn:hover {
-    background: #e8e0c9;
-    color: #5a5a5a;
-    opacity: 1;
-    transform: translateY(-1px);
-}
-
-.delete-word-btn:active {
-    transform: translateY(0);
-}
-
-/* Мобильные стили для кнопки удаления */
-@media (max-width: 768px) {
-    .delete-word-btn {
-        padding: 8px 16px;
-        font-size: 0.85rem;
-        max-width: 180px;
-    }
-}
-
+/* ===== УВЕДОМЛЕНИЯ И ЗАГРУЗКА ===== */
 .notification {
     position: fixed;
     top: 20px;
@@ -346,7 +345,7 @@ tr:hover {
     margin-top: auto;
 }
 
-/* Новые стили для добавления слова */
+/* ===== ФОРМА ДОБАВЛЕНИЯ СЛОВА ===== */
 .word-input-container {
     display: flex;
     align-items: flex-end;
@@ -358,7 +357,6 @@ tr:hover {
     flex: 1;
 }
 
-/* Стили для кнопки записи голоса */
 .voice-record-btn {
     position: absolute;
     right: 10px;
@@ -382,14 +380,12 @@ tr:hover {
     color: #2e7d32;
 }
 
-/* ПУЛЬСИРУЮЩИЙ КРАСНЫЙ КВАДРАТИК БЕЗ ФОНА */
 .voice-record-btn.active {
     background: none !important;
     color: #ff0000 !important;
     animation: pulse-scale 0.6s ease-in-out infinite alternate;
 }
 
-/* Анимация пульсации - увеличение и уменьшение */
 @keyframes pulse-scale {
     0% { 
         transform: translateY(-50%) scale(1);
@@ -399,24 +395,9 @@ tr:hover {
     }
 }
 
-/* Дополнительно: стили для иконки внутри кнопки */
 .voice-record-btn i {
     font-size: 1.1rem;
     transition: all 0.3s ease;
-}
-
-/* Адаптация для мобильных */
-@media (max-width: 768px) {
-    .voice-record-btn {
-        padding: 8px;
-        right: 8px;
-        width: 34px;
-        height: 34px;
-    }
-    
-    .voice-record-btn i {
-        font-size: 1.2rem;
-    }
 }
 
 .privacy-btn-container {
@@ -510,7 +491,7 @@ textarea {
     margin-top: 20px;
 }
 
-/* Стили для карточек слов */
+/* ===== КАРТОЧКИ СЛОВ ===== */
 .card-container {
     position: relative;
     min-height: 400px;
@@ -523,6 +504,7 @@ textarea {
 }
 
 .word-card {
+    position: relative;
     background: #fffdf6;
     border-radius: 12px;
     box-shadow: 0 8px 25px rgba(0,0,0,0.08);
@@ -531,7 +513,6 @@ textarea {
     max-width: 500px;
     min-height: 350px;
     padding: 30px;
-    position: relative;
     transition: all 0.3s ease;
     margin-bottom: 15px;
 }
@@ -689,7 +670,42 @@ textarea {
     margin-bottom: 10px;
 }
 
-/* Анимации для смены карточек */
+/* ===== ИНДИКАТОР ПУБЛИЧНОГО СЛОВА ===== */
+.public-word-indicator {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    color: #2e7d32;
+    font-size: 1.6rem;
+    opacity: 0.9;
+    z-index: 10;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 10px;
+    border-radius: 50%;
+    box-shadow: 0 3px 10px rgba(46, 125, 50, 0.3);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    border: 2px solid #e8f5e9;
+}
+
+.public-word-indicator:hover {
+    opacity: 1;
+    color: #1b5e20;
+    transform: scale(1.1) rotate(10deg);
+    box-shadow: 0 5px 15px rgba(46, 125, 50, 0.4);
+    background: rgba(255, 255, 255, 1);
+}
+
+.public-word-indicator i {
+    margin: 0;
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.1));
+}
+
+/* ===== АНИМАЦИИ ===== */
 .word-card.fade-out {
     opacity: 0;
     transform: translateX(20px);
@@ -700,51 +716,7 @@ textarea {
     transform: translateX(0);
 }
 
-/* Мобильные стили для карточек */
-@media (max-width: 768px) {
-    
-    .word-text {
-        font-size: 2rem;
-    }
-    
-    .word-translation {
-        font-size: 1.2rem;
-    }
-    
-    .nav-btn {
-        width: 45px;
-        height: 45px;
-    }
-
-    .card-container {
-        min-height: 300px;
-        padding: 10px 0;
-        justify-content: flex-start;
-    }
-    
-    .word-card {
-        margin: 10px;
-        padding: 20px;
-        min-height: 300px;
-        margin-bottom: 15px;
-    }
-    
-    .delete-word-btn {
-        padding: 8px 16px;
-        font-size: 0.85rem;
-        max-width: 180px;
-        margin: 0 auto 20px auto; /* Центрируем и добавляем отступ снизу */
-        order: 2; /* Явно указываем порядок для мобильных */
-    }
-    
-    /* Убедимся, что карточка идет перед кнопкой */
-    .word-card {
-        order: 1;
-    }
-}
-
-
-/* Мобильные стили */
+/* ===== МОБИЛЬНЫЕ СТИЛИ ===== */
 @media (max-width: 768px) {
     body {
         padding: 0;
@@ -807,7 +779,6 @@ textarea {
         overflow-y: auto;
     }
 
-    /* ИСПРАВЛЕНИЕ: Сохраняем горизонтальное расположение для поля ввода и кнопки приватности */
     .word-input-container {
         flex-direction: row;
         align-items: flex-end;
@@ -821,9 +792,64 @@ textarea {
     .privacy-btn-container {
         margin-bottom: 8px;
         flex-shrink: 0;
-        /* Добавляем выравнивание по центру по вертикали */
         align-items: center;
         justify-content: center;
         transform: translateY(12px);
+    }
+
+    .voice-record-btn {
+        padding: 8px;
+        right: 8px;
+        width: 34px;
+        height: 34px;
+    }
+    
+    .voice-record-btn i {
+        font-size: 1.2rem;
+    }
+
+    /* Карточки на мобильных */
+    .word-text {
+        font-size: 2rem;
+    }
+    
+    .word-translation {
+        font-size: 1.2rem;
+    }
+    
+    .nav-btn {
+        width: 45px;
+        height: 45px;
+    }
+
+    .card-container {
+        min-height: 300px;
+        padding: 10px 0;
+        justify-content: flex-start;
+    }
+    
+    .word-card {
+        margin: 10px;
+        padding: 20px;
+        min-height: 300px;
+        margin-bottom: 15px;
+        order: 1;
+    }
+    
+    .delete-word-btn {
+        padding: 8px 16px;
+        font-size: 0.85rem;
+        max-width: 180px;
+        margin: 0 auto 20px auto;
+        order: 2;
+    }
+
+    .public-word-indicator {
+        top: 6px;
+        right: 6px;
+        font-size: 1.4rem;
+        width: 44px;
+        height: 44px;
+        padding: 8px;
     }
 }

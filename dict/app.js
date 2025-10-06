@@ -108,7 +108,8 @@ function displayCurrentCard() {
     const cardCounter = document.getElementById('cardCounter');
     const deleteCardBtn = document.getElementById('deleteCardBtn');
     
-    console.log('Display current card, words count:', currentWords.length); // Для отладки
+    console.log('Display current card, words count:', currentWords.length);
+    console.log('Current word is_public:', currentWords[currentCardIndex]?.is_public);
     
     if (currentWords.length === 0) {
         if (wordCard) wordCard.style.display = 'none';
@@ -156,6 +157,29 @@ function displayCurrentCard() {
         audioContainer.style.display = 'block';
     } else if (audioContainer) {
         audioContainer.style.display = 'none';
+    }
+
+    // Управление индикатором публичного слова
+    if (wordCard) {
+        // Удаляем старый индикатор
+        const existingIndicator = wordCard.querySelector('.public-word-indicator');
+        if (existingIndicator) {
+            existingIndicator.remove();
+        }
+        
+        // Создаем новый индикатор если слово публичное
+        if (currentWord.is_public) {
+            const publicIndicator = document.createElement('div');
+            publicIndicator.className = 'public-word-indicator';
+            // Иконка земли/глобуса
+            publicIndicator.innerHTML = '<i class="fas fa-globe" title="Публичное слово - видно другим пользователям"></i>';
+            
+            const cardContent = wordCard.querySelector('.word-card-content');
+            if (cardContent) {
+                cardContent.appendChild(publicIndicator);
+                console.log('Public globe indicator added');
+            }
+        }
     }
     
     // Счетчик
