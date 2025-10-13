@@ -381,7 +381,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const formData = {
-            user_id: userId,
+            user_id: parseInt(userId),
             nickname: document.getElementById('nickname').value,
             email: document.getElementById('email').value,
             birthday: document.getElementById('birth_date').value,
