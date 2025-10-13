@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8100'; // Замените на URL вашего FastAPI сервера
+const API_BASE_URL = 'https://localhost:8100'; // Замените на URL вашего FastAPI сервера
 
 // Функции для извлечения user_id из Telegram WebApp
 async function getUserId() {
