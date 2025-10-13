@@ -384,10 +384,10 @@ document.addEventListener('DOMContentLoaded', function() {
             user_id: userId,
             nickname: document.getElementById('nickname').value,
             email: document.getElementById('email').value,
-            birth_date: document.getElementById('birth_date').value,
+            birthday: document.getElementById('birth_date').value,
             gender: genderInput.value,
             about: document.getElementById('about').value,
-            romantic_interest: romanticInterest.checked,
+            dating: romanticInterest.checked,
             location: shareLocationBtn.dataset.location ? 
                 JSON.parse(shareLocationBtn.dataset.location) : null
         };
