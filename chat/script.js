@@ -1,4 +1,4 @@
-const API_BASE_URL = ''; 
+const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:8100' : ''; 
 
 // Функции для извлечения user_id из Telegram WebApp
 async function getUserId() {
