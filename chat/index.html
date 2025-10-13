@@ -3,27 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Messenger</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.js"></script>
-    <link rel="stylesheet" href="/styles.css?v=20250826-4">
+    <title>Регистрация</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="chat-container">
-        <div class="chat-header">
-            <h2>Messanger</h2>
-        </div>
-
-        <div class="messages-container" id="messagesContainer">
-            <div class="system-message">
-                Chat started. Messages will disappear in 15 minutes
+        <!-- Страница приветствия -->
+        <div id="welcomePage" class="page active">
+            <div class="chat-header">
+                Добро пожаловать!
+            </div>
+            <div class="messages-container">
+                <div class="system-message">
+                    Для доступа к платформе требуется регистрация
+                </div>
+            </div>
+            <div class="input-container">
+                <button id="startRegistration" class="submit-button">Продолжить регистрацию</button>
             </div>
         </div>
 
-        <div class="input-container">
-            <input type="text" id="messageInput" placeholder="Enter your message...">
-            <button id="sendButton" onclick="sendMessage()">Send</button>
+        <!-- Страница регистрации -->
+        <div id="registrationPage" class="page">
+            <div class="chat-header">
+                Создание профиля
+            </div>
+            <form id="registrationForm" class="form-container">
+               <div class="input-group">
+                    <label for="nickname">Никнейм:</label>
+                    <input type="text" id="nickname" name="nickname" 
+                        autocapitalize="none" 
+                        autocorrect="off" 
+                        autocomplete="off" 
+                        required>
+                    <div class="nickname-checkmark checkmark"></div>
+                    <div class="nickname-help help-icon">?</div>
+                </div>
+                <div class="input-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" required>
+                    <div class="email-checkmark checkmark"></div>
+                </div>
+                
+                <div class="input-group">
+                    <label for="birth_date">Дата рождения:</label>
+                    <input type="text" id="birth_date" name="birth_date" placeholder="ДД-ММ-ГГГГ" required>
+                    <div class="birthdate-checkmark checkmark"></div>
+                    <div id="ageValidation" class="field-validation"></div>
+                </div>
+                
+                <div class="input-group">
+                    <label>Пол:</label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="gender" value="male" required>
+                            <span class="radio-custom"></span>
+                            Мужской
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="gender" value="female">
+                            <span class="radio-custom"></span>
+                            Женский
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="gender" value="other">
+                            <span class="radio-custom"></span>
+                            Другой
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label for="about">О себе:</label>
+                    <textarea id="about" name="about" rows="4"></textarea>
+                </div>
+                
+                <!-- Новая галочка для романтических отношений -->
+                <div id="romanticSection" class="checkbox-group hidden">
+                    <input type="checkbox" id="romanticInterest" name="romantic_interest">
+                    <label for="romanticInterest">Заинтересован в романтических отношениях</label>
+                </div>
+                
+                <!-- Секция с геолокацией и согласием -->
+                <div id="datingSection" class="hidden">
+                    <div class="input-group">
+                        <button type="button" id="shareLocation" class="location-button">Share Location</button>
+                        <div id="locationStatus" class="field-validation"></div>
+                    </div>
+                </div>
+                
+                <!-- Текст согласия -->
+                <div id="agreementText" class="agreement-text hidden">
+                    Нажимая кнопку «Создать профиль», вы подтверждаете, 
+                    что вам исполнилось 18 лет и вы согласны с
+                    <a href="#" class="agreement-link">Правилами использования сервиса</a> для знакомств. 
+                </div>
+                
+                <button type="submit" class="submit-button">Создать профиль</button>
+            </form>
+        </div>
+
+        <!-- Главная страница -->
+        <div id="mainPage" class="page">
+            <div class="chat-header">
+                Главная страница
+            </div>
+            <div class="messages-container">
+                <div class="system-message">
+                    Регистрация успешно завершена! Добро пожаловать на платформу.
+                </div>
+            </div>
         </div>
     </div>
-    <script src="/app.js?v=20250826-4"></script>
+
+    <!-- Всплывающее окно подсказки для никнейма -->
+    <div id="nicknameTooltip" class="tooltip hidden">
+        <div class="tooltip-content">
+            <h3>Требования к никнейму:</h3>
+            <ul>
+                <li>Только латинские буквы (a-z, A-Z)</li>
+                <li>От 6 до 15 символов</li>
+                <li>Без пробелов и специальных символов</li>
+            </ul>
+            <button id="closeTooltip" class="tooltip-close">Понятно</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>

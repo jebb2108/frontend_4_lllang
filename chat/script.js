@@ -1,0 +1,299 @@
+const API_BASE_URL = 'http://localhost:8000'; // Замените на URL вашего FastAPI сервера
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Элементы страниц
+    const welcomePage = document.getElementById('welcomePage');
+    const registrationPage = document.getElementById('registrationPage');
+    const mainPage = document.getElementById('mainPage');
+    
+    // Кнопки и формы
+    const startRegistrationBtn = document.getElementById('startRegistration');
+    const registrationForm = document.getElementById('registrationForm');
+    const birthDateInput = document.getElementById('birth_date');
+    const ageValidation = document.getElementById('ageValidation');
+    const emailInput = document.getElementById('email');
+    const emailCheckmark = document.querySelector('.email-checkmark');
+    const birthDateCheckmark = document.querySelector('.birthdate-checkmark');
+    const nicknameInput = document.getElementById('nickname');
+    const nicknameCheckmark = document.querySelector('.nickname-checkmark');
+    const nicknameHelp = document.querySelector('.nickname-help');
+    
+    // Новые элементы
+    const romanticSection = document.getElementById('romanticSection');
+    const romanticInterest = document.getElementById('romanticInterest');
+    const datingSection = document.getElementById('datingSection');
+    const shareLocationBtn = document.getElementById('shareLocation');
+    const locationStatus = document.getElementById('locationStatus');
+    const agreementText = document.getElementById('agreementText');
+    
+    // Элементы подсказки
+    const nicknameTooltip = document.getElementById('nicknameTooltip');
+    const closeTooltip = document.getElementById('closeTooltip');
+
+    // Показать подсказку для никнейма
+    nicknameHelp.addEventListener('click', function() {
+        nicknameTooltip.classList.remove('hidden');
+    });
+
+    // Закрыть подсказку
+    closeTooltip.addEventListener('click', function() {
+        nicknameTooltip.classList.add('hidden');
+    });
+
+    // Закрыть подсказку при клике вне ее области
+    nicknameTooltip.addEventListener('click', function(e) {
+        if (e.target === nicknameTooltip) {
+            nicknameTooltip.classList.add('hidden');
+        }
+    });
+
+    // Валидация никнейма
+    nicknameInput.addEventListener('input', function() {
+        validateNickname();
+    });
+
+    function validateNickname() {
+        const nickname = nicknameInput.value.trim();
+        
+        // Проверяем длину
+        if (nickname.length < 6 || nickname.length > 15) {
+            // Неправильная длина - скрываем галочку, показываем знак вопроса
+            nicknameCheckmark.classList.remove('visible');
+            nicknameHelp.classList.remove('hidden');
+            return false;
+        }
+        
+        // Проверяем на латинские буквы
+        const latinRegex = /^[a-zA-Z]+$/;
+        if (!latinRegex.test(nickname)) {
+            // Неправильные символы - скрываем галочку, показываем знак вопроса
+            nicknameCheckmark.classList.remove('visible');
+            nicknameHelp.classList.remove('hidden');
+            return false;
+        }
+        
+        // Никнейм валиден - показываем галочку, скрываем знак вопроса
+        nicknameCheckmark.classList.add('visible');
+        nicknameHelp.classList.add('hidden');
+        return true;
+    }
+
+    // Валидация даты рождения
+    birthDateInput.addEventListener('input', function() {
+        validateBirthDate();
+    });
+
+    function validateBirthDate() {
+        const birthDateValue = birthDateInput.value.trim();
+        
+        // Проверяем формат даты ДД-ММ-ГГГГ
+        const dateRegex = /^(\d{2})-(\d{2})-(\d{4})$/;
+        if (!dateRegex.test(birthDateValue)) {
+            ageValidation.textContent = 'Формат даты: ДД-ММ-ГГГГ';
+            ageValidation.className = 'field-validation error';
+            birthDateCheckmark.classList.remove('visible');
+            romanticSection.classList.add('hidden');
+            agreementText.classList.add('hidden');
+            return false;
+        }
+        
+        // Извлекаем день, месяц и год
+        const parts = birthDateValue.split('-');
+        const day = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10);
+        const year = parseInt(parts[2], 10);
+        
+        // Проверяем валидность даты
+        const birthDate = new Date(year, month - 1, day);
+        if (birthDate.getDate() !== day || birthDate.getMonth() !== month - 1 || birthDate.getFullYear() !== year) {
+            ageValidation.textContent = 'Неверная дата';
+            ageValidation.className = 'field-validation error';
+            birthDateCheckmark.classList.remove('visible');
+            romanticSection.classList.add('hidden');
+            agreementText.classList.add('hidden');
+            return false;
+        }
+        
+        // Проверяем возраст для романтических отношений (18+)
+        const today = new Date();
+        const age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+
+        // Дата валидна
+        ageValidation.textContent = '';
+        ageValidation.className = 'field-validation';
+        birthDateCheckmark.classList.add('visible');
+        
+        // Показываем галочку для романтических отношений только если возраст 18+
+        if (age >= 18) {
+            romanticSection.classList.remove('hidden');
+        } else {
+            romanticSection.classList.add('hidden');
+            datingSection.classList.add('hidden');
+            agreementText.classList.add('hidden');
+            romanticInterest.checked = false;
+        }
+        
+        return true;
+    }
+
+    // Обработка галочки романтических отношений
+    romanticInterest.addEventListener('change', function() {
+        if (this.checked) {
+            datingSection.classList.remove('hidden');
+            agreementText.classList.remove('hidden');
+        } else {
+            datingSection.classList.add('hidden');
+            agreementText.classList.add('hidden');
+            locationStatus.textContent = '';
+        }
+    });
+
+    // Валидация email
+    emailInput.addEventListener('input', function() {
+        validateEmail();
+    });
+
+    function validateEmail() {
+        const email = emailInput.value;
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        
+        if (!email) {
+            emailCheckmark.classList.remove('visible');
+            return false;
+        }
+        
+        if (!emailRegex.test(email)) {
+            emailCheckmark.classList.remove('visible');
+            return false;
+        } else {
+            emailCheckmark.classList.add('visible');
+            return true;
+        }
+    }
+
+    // Переход к регистрации
+    startRegistrationBtn.addEventListener('click', function() {
+        showPage(registrationPage);
+    });
+
+    // Получение геолокации
+    shareLocationBtn.addEventListener('click', function() {
+        if (!navigator.geolocation) {
+            locationStatus.textContent = 'Геолокация не поддерживается вашим браузером';
+            locationStatus.className = 'field-validation error';
+            return;
+        }
+
+        locationStatus.textContent = 'Определение местоположения...';
+        locationStatus.className = 'field-validation';
+        
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                const locationData = {
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude
+                };
+                shareLocationBtn.dataset.location = JSON.stringify(locationData);
+                locationStatus.textContent = 'Местоположение определено!';
+                locationStatus.className = 'field-validation';
+            },
+            function(error) {
+                let errorMessage = 'Ошибка получения местоположения';
+                switch(error.code) {
+                    case error.PERMISSION_DENIED:
+                        errorMessage = 'Доступ к геолокации запрещен';
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        errorMessage = 'Информация о местоположении недоступна';
+                        break;
+                    case error.TIMEOUT:
+                        errorMessage = 'Время запроса местоположения истекло';
+                        break;
+                }
+                locationStatus.textContent = errorMessage;
+                locationStatus.className = 'field-validation error';
+            }
+        );
+    });
+
+    // Отправка формы регистрации
+    registrationForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Проверяем валидность никнейма
+        if (!validateNickname()) {
+            alert('Пожалуйста, укажите корректный никнейм (только латинские буквы, 6-15 символов)');
+            return;
+        }
+        
+        // Проверяем валидность даты рождения
+        if (!validateBirthDate()) {
+            alert('Пожалуйста, укажите корректную дату рождения в формате ДД-ММ-ГГГГ');
+            return;
+        }
+
+        // Проверяем валидность email
+        if (!validateEmail()) {
+            alert('Пожалуйста, укажите корректный email адрес');
+            return;
+        }
+
+        // Получаем выбранный пол
+        const genderInput = document.querySelector('input[name="gender"]:checked');
+        if (!genderInput) {
+            alert('Пожалуйста, выберите пол');
+            return;
+        }
+
+        const formData = {
+            nickname: document.getElementById('nickname').value,
+            email: document.getElementById('email').value,
+            birth_date: document.getElementById('birth_date').value,
+            gender: genderInput.value,
+            about: document.getElementById('about').value,
+            romantic_interest: romanticInterest.checked,
+            location: shareLocationBtn.dataset.location ? 
+                JSON.parse(shareLocationBtn.dataset.location) : null
+        };
+
+        // Если пользователь заинтересован в романтических отношениях,
+        // считаем, что он согласен с условиями (так как текст согласия отображается)
+        if (romanticInterest.checked) {
+            formData.dating_agreement = true;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                showPage(mainPage);
+            } else {
+                const error = await response.json();
+                alert(`Ошибка регистрации: ${error.detail || 'Неизвестная ошибка'}`);
+            }
+        } catch (error) {
+            alert('Ошибка соединения с сервером');
+            console.error('Registration error:', error);
+        }
+    });
+
+    function showPage(page) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        page.classList.add('active');
+    }
+    
+    // Инициализация - запускаем валидацию никнейма при загрузке
+    validateNickname();
+});
