@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://chat.lllang.site'; // Замените на URL вашего FastAPI сервера
+const API_BASE_URL = ''; 
 
 // Функции для извлечения user_id из Telegram WebApp
 async function getUserId() {
