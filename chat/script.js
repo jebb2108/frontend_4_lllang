@@ -1,4 +1,106 @@
-const API_BASE_URL = 'http://localhost:8000'; // Замените на URL вашего FastAPI сервера
+const API_BASE_URL = 'http://localhost:8100'; // Замените на URL вашего FastAPI сервера
+
+// Функции для извлечения user_id из Telegram WebApp
+async function getUserId() {
+    let userId = null;
+    
+    // 1. Пробуем получить из Telegram WebApp
+    userId = await getUserIdFromTelegram();
+    
+    // 2. Если не получилось, извлекаем из URL
+    if (!userId) {
+        userId = getUserIdFromURL();
+    }
+    
+    return userId;
+}
+
+async function getUserIdFromTelegram() {
+    return new Promise((resolve) => {
+        if (window.Telegram?.WebApp) {
+            const tg = window.Telegram.WebApp;
+            tg.ready();
+            tg.expand();
+            
+            if (tg.initDataUnsafe?.user?.id) {
+                resolve(String(tg.initDataUnsafe.user.id));
+                return;
+            }
+        }
+        
+        const script = document.createElement('script');
+        script.src = 'https://telegram.org/js/telegram-web-app.js';
+        script.onload = () => {
+            if (window.Telegram?.WebApp) {
+                const tg = window.Telegram.WebApp;
+                tg.ready();
+                tg.expand();
+                
+                if (tg.initDataUnsafe?.user?.id) {
+                    resolve(String(tg.initDataUnsafe.user.id));
+                } else {
+                    resolve(null);
+                }
+            } else {
+                resolve(null);
+            }
+        };
+        script.onerror = () => {
+            resolve(null);
+        };
+        document.head.appendChild(script);
+        
+        setTimeout(() => {
+            resolve(null);
+        }, 2000);
+    });
+}
+
+function getUserIdFromURL() {
+    try {
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const tgWebAppData = hashParams.get('tgWebAppData');
+        
+        if (tgWebAppData) {
+            const dataParams = new URLSearchParams(tgWebAppData);
+            const userParam = dataParams.get('user');
+            
+            if (userParam) {
+                const decodedUser = decodeURIComponent(userParam);
+                const userData = JSON.parse(decodedUser);
+                
+                if (userData && userData.id) {
+                    return String(userData.id);
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Ошибка при извлечении данных из URL:', error);
+    }
+    
+    return null;
+}
+
+// Проверка существования пользователя в БД
+async function checkUserExists(userId) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/check_user?user_id=${encodeURIComponent(userId)}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            return result.exists;
+        }
+        return false;
+    } catch (error) {
+        console.error('Ошибка проверки пользователя:', error);
+        return false;
+    }
+}
 
 document.addEventListener('DOMContentLoaded', function() {
     // Элементы страниц
@@ -30,6 +132,29 @@ document.addEventListener('DOMContentLoaded', function() {
     const nicknameTooltip = document.getElementById('nicknameTooltip');
     const closeTooltip = document.getElementById('closeTooltip');
 
+    // Инициализация приложения
+    async function initializeApp() {
+        const userId = await getUserId();
+        
+        if (userId) {
+            // Проверяем, существует ли пользователь в БД
+            const userExists = await checkUserExists(userId);
+            
+            if (userExists) {
+                // Пользователь существует - переходим на главную страницу
+                showPage(mainPage);
+            } else {
+                // Пользователь не существует - показываем welcome страницу
+                showPage(welcomePage);
+            }
+        } else {
+            // user_id не найден - показываем welcome страницу
+            showPage(welcomePage);
+            startRegistrationBtn.disabled = true;
+            startRegistrationBtn.textContent = 'Откройте через Telegram';
+        }
+    }
+
     // Показать подсказку для никнейма
     nicknameHelp.addEventListener('click', function() {
         nicknameTooltip.classList.remove('hidden');
@@ -57,7 +182,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Проверяем длину
         if (nickname.length < 6 || nickname.length > 15) {
-            // Неправильная длина - скрываем галочку, показываем знак вопроса
             nicknameCheckmark.classList.remove('visible');
             nicknameHelp.classList.remove('hidden');
             return false;
@@ -66,7 +190,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // Проверяем на латинские буквы
         const latinRegex = /^[a-zA-Z]+$/;
         if (!latinRegex.test(nickname)) {
-            // Неправильные символы - скрываем галочку, показываем знак вопроса
             nicknameCheckmark.classList.remove('visible');
             nicknameHelp.classList.remove('hidden');
             return false;
@@ -225,6 +348,13 @@ document.addEventListener('DOMContentLoaded', function() {
     registrationForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         
+        // Получаем user_id
+        const userId = await getUserId();
+        if (!userId) {
+            alert('Не удалось определить ID пользователя. Пожалуйста, откройте приложение через Telegram.');
+            return;
+        }
+        
         // Проверяем валидность никнейма
         if (!validateNickname()) {
             alert('Пожалуйста, укажите корректный никнейм (только латинские буквы, 6-15 символов)');
@@ -251,6 +381,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const formData = {
+            user_id: userId,
             nickname: document.getElementById('nickname').value,
             email: document.getElementById('email').value,
             birth_date: document.getElementById('birth_date').value,
@@ -268,7 +399,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
-            const response = await fetch(`${API_BASE_URL}/register`, {
+            const response = await fetch(`${API_BASE_URL}/api/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -296,4 +427,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Инициализация - запускаем валидацию никнейма при загрузке
     validateNickname();
+    
+    // Инициализируем приложение
+    initializeApp();
 });
