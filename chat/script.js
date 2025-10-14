@@ -235,7 +235,7 @@ const API_BASE_URL = window.location.origin || 'https://chat.lllang.site';
                 });
 
                 if(response.status === 403){
-                    throw new Error(`Authorization error: status ${response.status}`)
+                    throw new Error(`Authorization error: status ${response.status}`);
                 }
                 
                 if (!response.ok) {
