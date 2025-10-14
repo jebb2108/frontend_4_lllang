@@ -285,7 +285,7 @@ const API_BASE_URL = window.location.origin || 'https://chat.lllang.site';
 
         function updateUserStatus() {
             if (userInQueue) {
-                roomElements.userStatus.textContent = 'Ты в очереди. Нажми на комнату чтобы выйти.';
+                roomElements.userStatus.textContent = 'Ты в очереди';
                 startSearchMessages(); // Запускаем сообщения при входе в очередь
             } else {
                 roomElements.userStatus.textContent = 'Нажми на комнату для поиска собеседника';
