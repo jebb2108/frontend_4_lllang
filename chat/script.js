@@ -162,8 +162,13 @@ const API_BASE_URL = window.location.origin || 'https://chat.lllang.site';
                 clearInterval(searchMessageInterval);
                 searchMessageInterval = null;
             }
-            roomElements.searchMessage.textContent = '';
+            // Плавно скрываем сообщение вместо резкого удаления
+            roomElements.searchMessage.style.opacity = '0';
+            setTimeout(() => {
+                roomElements.searchMessage.textContent = '';
+            }, 500);
         }
+
 
         async function initRoom() {
             if (roomInitialized) return;
@@ -280,9 +285,11 @@ const API_BASE_URL = window.location.origin || 'https://chat.lllang.site';
 
         function updateUserStatus() {
             if (userInQueue) {
-                roomElements.userStatus.textContent = 'Вы в очереди. Нажмите по комнате чтобы выйти.';
+                roomElements.userStatus.textContent = 'Вы в очереди. Нажмите на изображение чтобы выйти.';
+                startSearchMessages(); // Запускаем сообщения при входе в очередь
             } else {
-                roomElements.userStatus.textContent = 'Нажмите на комнату для поиска собеседника';
+                roomElements.userStatus.textContent = 'Нажмите на изображение для поиска собеседника';
+                stopSearchMessages(); // Останавливаем и скрываем сообщения при выходе из очереди
             }
         }
 
