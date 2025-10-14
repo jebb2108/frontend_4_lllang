@@ -285,10 +285,10 @@ const API_BASE_URL = window.location.origin || 'https://chat.lllang.site';
 
         function updateUserStatus() {
             if (userInQueue) {
-                roomElements.userStatus.textContent = 'Вы в очереди. Нажмите на изображение чтобы выйти.';
+                roomElements.userStatus.textContent = 'Ты в очереди. Нажми на комнату чтобы выйти.';
                 startSearchMessages(); // Запускаем сообщения при входе в очередь
             } else {
-                roomElements.userStatus.textContent = 'Нажмите на изображение для поиска собеседника';
+                roomElements.userStatus.textContent = 'Нажми на комнату для поиска собеседника';
                 stopSearchMessages(); // Останавливаем и скрываем сообщения при выходе из очереди
             }
         }
