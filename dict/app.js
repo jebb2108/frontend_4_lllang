@@ -343,6 +343,10 @@ async function addWord() {
         });
 
         const text = await response.text().catch(()=>null);
+        if (response.status == 403) {
+            let msg = `Активируйте подписку`;
+            throw new Error(msg);
+        }
         if (!response.ok) {
             console.error('addWord bad response', response.status, text);
             let msg = `Ошибка сервера (${response.status})`;
