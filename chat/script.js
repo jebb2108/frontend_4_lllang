@@ -218,9 +218,9 @@ const API_BASE_URL = window.location.origin || 'https://chat.lllang.site';
             if (count === 0) {
                 roomElements.roomImage.src = 'media/empty_room.jpeg';
             } else if (count < 3) {
-                roomElements.roomImage.src = 'half_full_room.jpeg';
+                roomElements.roomImage.src = 'media/half_full_room.jpeg';
             } else {
-                roomElements.roomImage.src = 'full_room.jpeg';
+                roomElements.roomImage.src = 'media/full_room.jpeg';
             }
         }
 
