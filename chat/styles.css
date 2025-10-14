@@ -1,4 +1,4 @@
- * {
+* {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
@@ -450,83 +450,45 @@
         }
 
         .room-image {
-            width: 250px;
-            height: 180px;
+            width: 280px;
+            height: 200px;
             cursor: pointer;
             transition: all 0.3s ease;
-            border-radius: 10px;
+            border-radius: 12px;
             object-fit: cover;
             border: 2px solid #e0d9c0;
+            margin-bottom: 25px;
         }
 
         .room-image:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transform: scale(1.03);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
         }
 
         .room-image.loading {
-            opacity: 0.6;
+            opacity: 0.7;
             cursor: not-allowed;
-        }
-
-        .queue-status {
-            margin-top: 20px;
-            padding: 12px 20px;
-            border-radius: 8px;
-            font-family: 'Georgia', serif;
-            font-size: 1rem;
-            font-weight: 600;
-            width: 100%;
-            max-width: 300px;
-        }
-
-        .queue-status.empty {
-            background-color: #e8f5e8;
-            color: #2e7d32;
-            border-left: 4px solid #2e7d32;
-        }
-
-        .queue-status.waiting {
-            background-color: #fff3e0;
-            color: #ef6c00;
-            border-left: 4px solid #ef6c00;
-        }
-
-        .queue-status.active {
-            background-color: #ffebee;
-            color: #c62828;
-            border-left: 4px solid #c62828;
+            transform: none;
         }
 
         .user-status {
-            margin-top: 15px;
-            font-weight: bold;
-            font-size: 0.95rem;
-            color: #5a5a5a;
+            margin-bottom: 15px;
+            font-weight: 600;
+            font-size: 1rem;
+            color: #2e7d32;
         }
 
-        .queue-info {
-            margin-top: 15px;
+        .search-message {
+            margin-top: 10px;
             font-size: 0.9rem;
             color: #666;
-        }
-
-        .user-criteria {
-            margin-top: 10px;
-            font-size: 0.8rem;
-            color: #888;
             font-style: italic;
+            min-height: 20px;
+            transition: opacity 0.5s ease;
         }
 
         .room-error {
             color: #c62828;
-            margin-top: 10px;
+            margin-top: 15px;
             font-size: 0.9rem;
-        }
-
-        .room-title {
-            margin-bottom: 20px;
-            color: #2e7d32;
-            font-size: 1.3rem;
-            font-weight: 600;
         }

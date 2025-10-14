@@ -1,5 +1,24 @@
 const API_BASE_URL = window.location.origin || 'https://chat.lllang.site';
 
+        // Массив креативных сообщений о поиске
+        const searchMessages = [
+            "Подбираем сладости к чаю...",
+            "Практикуем произношение...",
+            "Читаем газету на иностранном языке...",
+            "Готовим фондю для душевной беседы...",
+            "Собираем букет из интересных тем...",
+            "Настраиваем языковые вибрации...",
+            "Завариваем ароматный кофе для беседы...",
+            "Перебираем словарный запас...",
+            "Ищем общие интересы...",
+            "Настраиваем атмосферу для комфортного общения...",
+            "Подготавливаем интересные вопросы...",
+            "Создаем уютную языковую среду...",
+            "Подбираем идеальную пару для диалога...",
+            "Наполняем чашу вдохновения...",
+            "Готовим сюрпризы для беседы..."
+        ];
+
         // Функции для извлечения user_id из Telegram WebApp
         async function getUserId() {
             let userId = null;
@@ -107,21 +126,49 @@ const API_BASE_URL = window.location.origin || 'https://chat.lllang.site';
         let userInQueue = false;
         let currentQueueSize = 0;
         let isLoading = false;
+        let searchMessageInterval = null;
+        let currentMessageIndex = 0;
         
         const roomElements = {
             roomImage: document.getElementById('room-image'),
-            queueStatus: document.getElementById('queue-status'),
             userStatus: document.getElementById('user-status'),
-            queueCount: document.getElementById('queue-count'),
-            userCriteria: document.getElementById('user-criteria'),
+            searchMessage: document.getElementById('search-message'),
             error: document.getElementById('room-error')
         };
+
+        // Функция для смены сообщений поиска
+        function startSearchMessages() {
+            if (searchMessageInterval) {
+                clearInterval(searchMessageInterval);
+            }
+            
+            currentMessageIndex = 0;
+            roomElements.searchMessage.textContent = searchMessages[currentMessageIndex];
+            roomElements.searchMessage.style.opacity = '1';
+            
+            searchMessageInterval = setInterval(() => {
+                currentMessageIndex = (currentMessageIndex + 1) % searchMessages.length;
+                roomElements.searchMessage.style.opacity = '0';
+                
+                setTimeout(() => {
+                    roomElements.searchMessage.textContent = searchMessages[currentMessageIndex];
+                    roomElements.searchMessage.style.opacity = '1';
+                }, 500);
+            }, 3000);
+        }
+
+        function stopSearchMessages() {
+            if (searchMessageInterval) {
+                clearInterval(searchMessageInterval);
+                searchMessageInterval = null;
+            }
+            roomElements.searchMessage.textContent = '';
+        }
 
         async function initRoom() {
             if (roomInitialized) return;
             
             updateRoomImage(0);
-            updateQueueStatus(0);
             updateUserStatus();
             
             // Загружаем начальный статус пользователя
@@ -146,6 +193,12 @@ const API_BASE_URL = window.location.origin || 'https://chat.lllang.site';
                     const data = await response.json();
                     userInQueue = data.in_queue;
                     updateUserStatus();
+                    
+                    if (userInQueue) {
+                        startSearchMessages();
+                    } else {
+                        stopSearchMessages();
+                    }
                 }
             } catch (error) {
                 console.error('Error checking user status:', error);
@@ -187,9 +240,10 @@ const API_BASE_URL = window.location.origin || 'https://chat.lllang.site';
                     updateUserStatus();
                     showError('');
                     
-                    // Показываем критерии поиска
-                    if (data.criteria) {
-                        showUserCriteria(data.criteria);
+                    if (userInQueue) {
+                        startSearchMessages();
+                    } else {
+                        stopSearchMessages();
                     }
                 } else {
                     throw new Error(data.message || 'Unknown error');
@@ -224,34 +278,12 @@ const API_BASE_URL = window.location.origin || 'https://chat.lllang.site';
             }
         }
 
-        function updateQueueStatus(count) {
-            roomElements.queueCount.textContent = count;
-            
-            if (count === 0) {
-                roomElements.queueStatus.textContent = 'Очередь пуста';
-                roomElements.queueStatus.className = 'queue-status empty';
-            } else if (count < 3) {
-                roomElements.queueStatus.textContent = 'Ищем собеседника...';
-                roomElements.queueStatus.className = 'queue-status waiting';
-            } else {
-                roomElements.queueStatus.textContent = 'Активный поиск';
-                roomElements.queueStatus.className = 'queue-status active';
-            }
-        }
-
         function updateUserStatus() {
             if (userInQueue) {
-                roomElements.userStatus.textContent = 'Вы в очереди. Нажмите на изображение чтобы выйти.';
-                roomElements.userStatus.style.color = '#2e7d32';
+                roomElements.userStatus.textContent = 'Вы в очереди. Нажмите по комнате чтобы выйти.';
             } else {
-                roomElements.userStatus.textContent = 'Нажмите на изображение для поиска собеседника';
-                roomElements.userStatus.style.color = '#2e7d32';
+                roomElements.userStatus.textContent = 'Нажмите на комнату для поиска собеседника';
             }
-        }
-
-        function showUserCriteria(criteria) {
-            const criteriaText = `Критерии поиска: язык: ${criteria.language}, уровень: ${criteria.fluency}`;
-            roomElements.userCriteria.textContent = criteriaText;
         }
 
         function showError(message) {
@@ -265,7 +297,6 @@ const API_BASE_URL = window.location.origin || 'https://chat.lllang.site';
                     const data = await response.json();
                     currentQueueSize = data.queue_size;
                     updateRoomImage(data.queue_size);
-                    updateQueueStatus(data.queue_size);
                 }
             } catch (error) {
                 console.error('Error updating queue data:', error);
@@ -284,7 +315,6 @@ const API_BASE_URL = window.location.origin || 'https://chat.lllang.site';
                         if (data.type === 'queue_update') {
                             currentQueueSize = data.count;
                             updateRoomImage(data.count);
-                            updateQueueStatus(data.count);
                         }
                     };
                     
