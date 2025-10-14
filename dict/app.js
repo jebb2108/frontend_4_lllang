@@ -343,11 +343,21 @@ async function addWord() {
         });
 
         const text = await response.text().catch(()=>null);
-        if (response.status == 403) {
+        // Проверка статуса 403
+        if (response.status === 403) {
             let msg = `Активируйте подписку`;
+            // Пробуем получить сообщение от сервера, если есть
+            try {
+                const json = text ? JSON.parse(text) : null;
+                if (json && (json.detail || json.message)) {
+                    msg = json.detail || json.message;
+                }
+            } catch (e) {
+                // Игнорируем ошибки парсинга, используем стандартное сообщение
+            }
             throw new Error(msg);
         }
-        if (!response.ok) {
+        if (response.status === 500) {
             console.error('addWord bad response', response.status, text);
             let msg = `Ошибка сервера (${response.status})`;
             try {
