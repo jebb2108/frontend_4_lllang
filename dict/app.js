@@ -346,7 +346,6 @@ async function addWord() {
         // Проверка статуса 403
         if (response.status === 403) {
             let msg = `Активируйте подписку`;
-            // Пробуем получить сообщение от сервера, если есть
             try {
                 const json = text ? JSON.parse(text) : null;
                 if (json && (json.detail || json.message)) {
@@ -357,13 +356,19 @@ async function addWord() {
             }
             throw new Error(msg);
         }
-        if (response.status === 500) {
+        
+        // Проверка всех остальных ошибок
+        if (!response.ok) {
             console.error('addWord bad response', response.status, text);
             let msg = `Ошибка сервера (${response.status})`;
             try {
                 const json = text ? JSON.parse(text) : null;
-                if (json && (json.error || json.message)) msg = json.error || json.message;
-            } catch (e) { if (text) msg = text; }
+                if (json && (json.error || json.message || json.detail)) {
+                    msg = json.error || json.message || json.detail;
+                }
+            } catch (e) { 
+                if (text) msg = text; 
+            }
             throw new Error(msg);
         }
 
