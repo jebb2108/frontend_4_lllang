@@ -233,6 +233,10 @@ const API_BASE_URL = window.location.origin || 'https://chat.lllang.site';
                         action: action
                     })
                 });
+
+                if(response.status === 403){
+                    throw new Error(`Authorization error: status ${response.status}`)
+                }
                 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
