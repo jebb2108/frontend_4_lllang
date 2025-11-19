@@ -320,7 +320,7 @@ async function toggleQueue() {
         
         const data = await response.json();
         
-        if (data.status === 'success') {
+        if (data.status === 'accepted') {
             userInQueue = action === 'join';
             matchFound = false;
             updateUserStatus();
@@ -331,9 +331,7 @@ async function toggleQueue() {
             } else {
                 stopSearchMessages();
             }
-        } else {
-            throw new Error(data.message || 'Unknown error');
-        }
+    }
         
     } catch (error) {
         showError('Ошибка: ' + error.message);
