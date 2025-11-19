@@ -1,4 +1,4 @@
-const API_BASE_URL = window.location.origin || 'http://localhost:8101';
+const API_BASE_URL = 'http://localhost:8100';
 const API_WORKER_URL = 'http:/localhost:1001'
 
 // Массив креативных сообщений о поиске
