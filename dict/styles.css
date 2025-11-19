@@ -34,7 +34,7 @@ body {
 
 /* ===== ШАПКА ===== */
 .book-header {
-    background: #2e7d32;
+    background: rgb(46, 125, 50);
     color: white;
     padding: 25px 30px;
     text-align: center;
