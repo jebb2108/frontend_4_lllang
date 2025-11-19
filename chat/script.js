@@ -139,6 +139,17 @@ const roomElements = {
     error: document.getElementById('room-error')
 };
 
+
+function resetSearchState() {
+    userInQueue = false;
+    matchFound = false;
+    updateRoomImage(currentQueueSize);
+    roomElements.roomImage.onclick = toggleQueue;
+    updateUserStatus();
+    stopSearchMessages();
+}
+
+
 // Функция для смены сообщений поиска
 function startSearchMessages() {
     if (searchMessageInterval) {
@@ -211,9 +222,9 @@ async function checkUserStatus() {
             const wasInQueue = userInQueue;
             userInQueue = data.in_queue;
             
-            // Если пользователь вышел из очереди (но не по клику), проверяем найден ли матч
+            // Если пользователь вышел из очереди (но не по клику), сбрасываем состояние
             if (wasInQueue && !userInQueue && !isLoading) {
-                await checkMatchFound();
+                resetSearchState();
             }
             
             updateUserStatus();
@@ -226,36 +237,44 @@ async function checkUserStatus() {
         }
     } catch (error) {
         console.error('Error checking user status:', error);
+        // При ошибке тоже сбрасываем состояние поиска
+        if (userInQueue) {
+            resetSearchState();
+        }
     }
 }
 
-// Проверка найденного матча
+
+
 async function checkMatchFound() {
     try {
         const userId = await getUserId();
         if (!userId) return;
         
-        const response = await fetch(`${API_BASE_URL}/match_found?user_id=${encodeURIComponent(userId)}`);
+        const response = await fetch(`${API_WORKER_URL}/match_found?user_id=${encodeURIComponent(userId)}`);
         if (response.ok) {
             const data = await response.json();
             if (data.match_id) {
                 matchFound = true;
                 showMatchFound(data.match_id);
             } else {
-                matchFound = false;
-                updateRoomImage(currentQueueSize);
-                roomElements.roomImage.onclick = toggleQueue;
+                // Если матч не найден, сбрасываем состояние
+                resetSearchState();
             }
+        } else {
+            // Если ошибка запроса, сбрасываем состояние
+            resetSearchState();
         }
     } catch (error) {
         console.error('Error checking match found:', error);
-        matchFound = false;
+        resetSearchState();
     }
 }
 
+
 // Показать найденный матч
 function showMatchFound(matchId) {
-    roomElements.roomImage.src = 'media/door.jpeg'; // Новая картинка с дверью
+    roomElements.roomImage.src = 'media/door.jpeg';
     roomElements.userStatus.textContent = 'Собеседник найден! Нажми чтобы начать общение';
     
     // Заменяем обработчик на переход в чат
@@ -265,6 +284,7 @@ function showMatchFound(matchId) {
     
     showError('');
 }
+
 
 async function toggleQueue() {
     if (isLoading || matchFound) return;
@@ -306,7 +326,7 @@ async function toggleQueue() {
                 gender: userInfo.gender,
                 criteria: userInfo.criteria,
                 lang_code: userInfo.lang_code,
-                action: action // Добавляем действие
+                action: action
             })
         });
 
@@ -320,7 +340,8 @@ async function toggleQueue() {
         
         const data = await response.json();
         
-        if (data.status === 'accepted') {
+        if (data.status === 'accepted' || data.status === 'success') {
+            // Обновляем состояние только если запрос успешен
             userInQueue = action === 'join';
             matchFound = false;
             updateUserStatus();
@@ -331,15 +352,20 @@ async function toggleQueue() {
             } else {
                 stopSearchMessages();
             }
-    }
+        } else {
+            throw new Error(data.message || 'Unknown error');
+        }
         
     } catch (error) {
         showError('Ошибка: ' + error.message);
         console.error('Error toggling queue:', error);
+        // При ошибке сбрасываем состояние на всякий случай
+        resetSearchState();
     } finally {
         setIsLoading(false);
     }
 }
+
 
 function setIsLoading(loading) {
     isLoading = loading;
@@ -352,7 +378,7 @@ function setIsLoading(loading) {
 }
 
 function updateRoomImage(count) {
-    if (matchFound) return; // Не меняем картинку если матч найден
+    if (matchFound) return;
     
     if (count === 0) {
         roomElements.roomImage.src = 'media/empty_room.jpeg';
@@ -363,24 +389,29 @@ function updateRoomImage(count) {
     }
 }
 
+
 function updateUserStatus() {
     if (matchFound) {
         roomElements.userStatus.textContent = 'Собеседник найден! Нажми чтобы начать общение';
+        roomElements.userStatus.style.color = '#4CAF50';
     } else if (userInQueue) {
-        roomElements.userStatus.textContent = 'Ты в очереди';
-        startSearchMessages();
+        roomElements.userStatus.textContent = 'Ты в очереди, ожидаем собеседника...';
+        roomElements.userStatus.style.color = '#FF9800';
     } else {
         roomElements.userStatus.textContent = 'Нажми на комнату для поиска собеседника';
-        stopSearchMessages();
+        roomElements.userStatus.style.color = '#2196F3';
+        updateRoomImage(currentQueueSize);
     }
 }
+
 
 function showError(message) {
     roomElements.error.textContent = message;
 }
 
+
 async function updateQueueData() {
-    if (matchFound) return; // Не обновляем очередь если матч найден
+    if (matchFound) return;
     
     try {
         const response = await fetch(`${API_WORKER_URL}/queue/status`);
@@ -388,15 +419,20 @@ async function updateQueueData() {
             const data = await response.json();
             currentQueueSize = data.queue_size;
             updateRoomImage(data.queue_size);
+        } else {
+            // Если не можем получить статус очереди, сбрасываем состояние
+            console.warn('Не удалось получить статус очереди');
+            resetSearchState();
         }
     } catch (error) {
         console.error('Error updating queue data:', error);
+        resetSearchState();
     }
 }
 
-// Остальной код (инициализация, регистрация и т.д.) остается без изменений
+
+
 document.addEventListener('DOMContentLoaded', function() {
-    // [Остальной код остается точно таким же...]
     // Элементы страниц
     const welcomePage = document.getElementById('welcomePage');
     const registrationPage = document.getElementById('registrationPage');
@@ -449,7 +485,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // [Весь остальной код регистрации и валидации остается без изменений...]
+
     
     // Показать подсказку для никнейма
     nicknameHelp.addEventListener('click', function() {
