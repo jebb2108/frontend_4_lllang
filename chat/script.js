@@ -1,5 +1,5 @@
-const API_BASE_URL = 'http://localhost:8100';
-const API_WORKER_URL = 'http:/localhost:1001'
+const API_BASE_URL = 'https://chat.lllang.site/usr';
+const API_WORKER_URL = 'https://chat.lllang.site/api'
 
 // Массив креативных сообщений о поиске
 const searchMessages = [
