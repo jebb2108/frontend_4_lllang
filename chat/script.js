@@ -1,5 +1,5 @@
-const API_BASE_URL = 'https://chat.lllang.site/usr';
-const API_WORKER_URL = 'https://chat.lllang.site/api'
+const API_BASE_URL = 'https://chat.lllang.site/user';
+const API_WORKER_URL = 'https://chat.lllang.site/worker'
 
 // Массив креативных сообщений о поиске
 const searchMessages = [
@@ -205,7 +205,7 @@ async function checkUserStatus() {
         const userId = await getUserId();
         if (!userId) return;
         
-        const response = await fetch(`${API_WORKER_URL}/api/v0/queue/${userId}/status`);
+        const response = await fetch(`${API_WORKER_URL}/queue/${userId}/status`);
         if (response.ok) {
             const data = await response.json();
             const wasInQueue = userInQueue;
@@ -235,7 +235,7 @@ async function checkMatchFound() {
         const userId = await getUserId();
         if (!userId) return;
         
-        const response = await fetch(`${API_WORKER_URL}/api/v0/match_found?user_id=${encodeURIComponent(userId)}`);
+        const response = await fetch(`${API_BASE_URL}/match_found?user_id=${encodeURIComponent(userId)}`);
         if (response.ok) {
             const data = await response.json();
             if (data.match_id) {
@@ -278,7 +278,7 @@ async function toggleQueue() {
         }
         
         const action = userInQueue ? 'leave' : 'join';
-        const response = await fetch(`${API_WORKER_URL}/api/v0/match/toggle`, {
+        const response = await fetch(`${API_WORKER_URL}/match/toggle`, {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
@@ -365,7 +365,7 @@ async function updateQueueData() {
     if (matchFound) return; // Не обновляем очередь если матч найден
     
     try {
-        const response = await fetch(`${API_WORKER_URL}/api/v0/queue/status`);
+        const response = await fetch(`${API_WORKER_URL}/queue/status`);
         if (response.ok) {
             const data = await response.json();
             currentQueueSize = data.queue_size;
@@ -661,7 +661,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
-            const response = await fetch(`${API_BASE_URL}/api/register`, {
+            const response = await fetch(`${API_BASE_URL}/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
