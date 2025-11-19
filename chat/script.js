@@ -1,5 +1,5 @@
-const API_BASE_URL = 'https://chat.lllang.site/user';
-const API_WORKER_URL = 'https://chat.lllang.site/worker'
+const API_BASE_URL = 'https://chat.lllang.site/api/user';
+const API_WORKER_URL = 'https://chat.lllang.site/api/worker'
 
 // Массив креативных сообщений о поиске
 const searchMessages = [
