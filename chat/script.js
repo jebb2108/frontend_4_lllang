@@ -382,26 +382,25 @@ function updateRoomImage(count) {
     
     if (count === 0) {
         roomElements.roomImage.src = 'media/empty_room.jpeg';
-    } else if (count < 3) {
+    } else if (count < 5) {
         roomElements.roomImage.src = 'media/half_full_room.jpeg';
     } else {
         roomElements.roomImage.src = 'media/full_room.jpeg';
     }
 }
 
-
 function updateUserStatus() {
     if (matchFound) {
         roomElements.userStatus.textContent = 'Собеседник найден! Нажми чтобы начать общение';
-        roomElements.userStatus.style.color = '#4CAF50';
     } else if (userInQueue) {
-        roomElements.userStatus.textContent = 'Ты в очереди, ожидаем собеседника...';
-        roomElements.userStatus.style.color = '#FF9800';
+        roomElements.userStatus.textContent = 'Ты в очереди';
+        startSearchMessages();
     } else {
         roomElements.userStatus.textContent = 'Нажми на комнату для поиска собеседника';
-        roomElements.userStatus.style.color = '#2196F3';
-        updateRoomImage(currentQueueSize);
+        stopSearchMessages();
     }
+    // Всегда обновляем картинку при изменении статуса
+    updateRoomImage(currentQueueSize);
 }
 
 
