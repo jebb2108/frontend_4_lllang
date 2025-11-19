@@ -278,6 +278,22 @@ async function toggleQueue() {
         }
         
         const action = userInQueue ? 'leave' : 'join';
+
+        // 1. Получаем информацию о пользователе (GET запрос)
+        const userInfoResponse = await fetch(`${API_BASE_URL}/user_info/${userId}`, {
+            method: 'GET',
+            headers: { 
+                'Accept': 'application/json'
+            }
+        });
+
+        if (!userInfoResponse.ok) {
+            throw new Error(`Ошибка получения данных пользователя: ${userInfoResponse.status}`);
+        }
+
+        const userInfo = await userInfoResponse.json();
+
+        // 2. Отправляем запрос в worker API
         const response = await fetch(`${API_WORKER_URL}/match/toggle`, {
             method: 'POST',
             headers: { 
@@ -286,7 +302,11 @@ async function toggleQueue() {
             },
             body: JSON.stringify({
                 user_id: userId,
-                action: action
+                username: userInfo.username,
+                gender: userInfo.gender,
+                criteria: userInfo.criteria,
+                lang_code: userInfo.lang_code,
+                action: action // Добавляем действие
             })
         });
 
