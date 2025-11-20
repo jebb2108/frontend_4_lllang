@@ -150,8 +150,8 @@ function shuffleArray(array) {
     return shuffled;
 }
 
-// Перемешиваем массив один раз при загрузке
-let shuffledSearchMessages = shuffleArray(searchMessages);
+
+let currentShuffledMessages = [];
 
 // Функция для смены сообщений поиска
 function startSearchMessages() {
@@ -159,16 +159,18 @@ function startSearchMessages() {
         clearInterval(searchMessageInterval);
     }
     
+    // Каждый раз при входе в очередь создаем новый случайный порядок сообщений
+    currentShuffledMessages = shuffleArray(searchMessages);
     currentMessageIndex = 0;
-    roomElements.searchMessage.textContent = shuffledSearchMessages[currentMessageIndex];
+    roomElements.searchMessage.textContent = currentShuffledMessages[currentMessageIndex];
     roomElements.searchMessage.style.opacity = '1';
     
     searchMessageInterval = setInterval(() => {
-        currentMessageIndex = (currentMessageIndex + 1) % shuffledSearchMessages.length;
+        currentMessageIndex = (currentMessageIndex + 1) % currentShuffledMessages.length;
         roomElements.searchMessage.style.opacity = '0';
         
         setTimeout(() => {
-            roomElements.searchMessage.textContent = shuffledSearchMessages[currentMessageIndex];
+            roomElements.searchMessage.textContent = currentShuffledMessages[currentMessageIndex];
             roomElements.searchMessage.style.opacity = '1';
         }, 500);
     }, 3000);
