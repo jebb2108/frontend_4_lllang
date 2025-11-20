@@ -131,6 +131,7 @@ let searchMessageInterval = null;
 let currentMessageIndex = 0;
 let statusCheckInterval = null;
 let matchFound = false;
+let searchMessagesRunning = false;
 
 const roomElements = {
     roomImage: document.getElementById('room-image'),
@@ -141,9 +142,9 @@ const roomElements = {
 
 // Функция для смены сообщений поиска
 function startSearchMessages() {
-    if (searchMessageInterval) {
-        clearInterval(searchMessageInterval);
-    }
+    if (searchMessagesRunning) return;
+    
+    searchMessagesRunning = true;
     
     // Немедленно показываем первое сообщение
     currentMessageIndex = 0;
@@ -163,6 +164,7 @@ function startSearchMessages() {
 }
 
 function stopSearchMessages() {
+    searchMessagesRunning = false;
     if (searchMessageInterval) {
         clearInterval(searchMessageInterval);
         searchMessageInterval = null;
@@ -182,9 +184,6 @@ async function initRoom() {
     
     // Загружаем начальный статус пользователя
     await checkUserStatus();
-    
-    // Принудительно обновляем статус после проверки
-    updateUserStatus();
     
     // Запускаем периодическую проверку статуса пользователя
     startStatusChecking();
@@ -231,7 +230,7 @@ async function checkUserStatus() {
             }
             
             // Если пользователь вышел из очереди, проверяем не нашли ли матч
-            if (!userInQueue) {
+            if (!userInQueue && !matchFound) {
                 await checkMatchFound();
             }
         }
@@ -257,10 +256,9 @@ function updateUserStatus() {
         roomElements.roomImage.src = 'media/door.jpeg';
     } else if (userInQueue) {
         roomElements.userStatus.textContent = 'Ты в очереди';
-        startSearchMessages();
+        // Сообщения запускаются автоматически при изменении состояния
     } else {
         roomElements.userStatus.textContent = 'Нажми на комнату для поиска собеседника';
-        stopSearchMessages();
         updateRoomImage(currentQueueSize);
     }
 }
@@ -319,10 +317,8 @@ async function toggleQueue() {
         const data = await response.json();
         
         if (data.status === 'accepted') {
-            // После успешного запроса принудительно запускаем сообщения
-            userInQueue = true;
-            updateUserStatus();
-            startSearchMessages();
+            // После успешного запроса проверяем статус
+            await checkUserStatus();
             showError('');
         } else {
             throw new Error(data.message || 'Unknown error');
@@ -347,7 +343,7 @@ async function checkMatchFound() {
             const data = await response.json();
             if (data.match_id) {
                 matchFound = true;
-                userInQueue = false; // Больше не в очереди
+                userInQueue = false;
                 showMatchFound(data.match_id);
             }
         }
@@ -366,6 +362,7 @@ function showMatchFound(matchId) {
         window.location.href = `/chat/${matchId}`;
     };
     
+    stopSearchMessages();
     showError('');
 }
 
@@ -405,7 +402,6 @@ async function updateQueueData() {
             currentQueueSize = data.queue_size;
             updateRoomImage(data.queue_size);
         } else {
-            // Если не можем получить статус очереди, сбрасываем состояние
             console.warn('Не удалось получить статус очереди');
             resetSearchState();
         }
