@@ -139,8 +139,6 @@ const roomElements = {
     error: document.getElementById('room-error')
 };
 
-
-
 // Функция для смены сообщений поиска
 function startSearchMessages() {
     if (searchMessageInterval) {
@@ -211,37 +209,16 @@ async function checkUserStatus() {
         const response = await fetch(`${API_WORKER_URL}/queue/${userId}/status`);
         if (response.ok) {
             const data = await response.json();
-            const wasInQueue = userInQueue;
             userInQueue = data.in_queue;
+            updateUserStatus();
             
-            // Обновляем статус только если состояние изменилось
-            if (wasInQueue !== userInQueue) {
-                updateUserStatus();
-                
-                if (userInQueue) {
-                    startSearchMessages();
-                } else {
-                    stopSearchMessages();
-                    // Если пользователь вышел из очереди, проверяем не нашли ли матч
-                    await checkMatchFound();
-                }
-            }
-        } else {
-            // Если ошибка запроса, считаем что пользователь не в очереди
-            if (userInQueue) {
-                userInQueue = false;
-                updateUserStatus();
-                stopSearchMessages();
+            // Если пользователь вышел из очереди, проверяем не нашли ли матч
+            if (!userInQueue) {
+                await checkMatchFound();
             }
         }
     } catch (error) {
         console.error('Error checking user status:', error);
-        // При ошибке считаем что пользователь не в очереди
-        if (userInQueue) {
-            userInQueue = false;
-            updateUserStatus();
-            stopSearchMessages();
-        }
     }
 }
 
@@ -281,8 +258,6 @@ async function toggleQueue() {
         if (!userId) {
             throw new Error('Не удалось определить ID пользователя');
         }
-        
-        const action = userInQueue ? 'leave' : 'join';
 
         // Получаем информацию о пользователе
         const userInfoResponse = await fetch(`${API_BASE_URL}/user_info/${userId}`, {
@@ -311,7 +286,7 @@ async function toggleQueue() {
                 gender: userInfo.gender,
                 criteria: userInfo.criteria,
                 lang_code: userInfo.lang_code,
-                action: action
+                action: 'join'
             })
         });
 
@@ -326,23 +301,9 @@ async function toggleQueue() {
         const data = await response.json();
         
         if (data.status === 'accepted') {
-            // Явно обновляем состояние на основе действия
-            userInQueue = (action === 'join');
-            matchFound = false;
-            updateUserStatus();
+            // После успешного запроса проверяем статус
+            await checkUserStatus();
             showError('');
-            
-            // Если вошли в очередь, запускаем проверку матча
-            if (userInQueue) {
-                // Периодически проверяем найден ли матч
-                const matchCheckInterval = setInterval(async () => {
-                    if (!userInQueue) {
-                        clearInterval(matchCheckInterval);
-                        return;
-                    }
-                    await checkMatchFound();
-                }, 2000);
-            }
         } else {
             throw new Error(data.message || 'Unknown error');
         }
@@ -350,8 +311,6 @@ async function toggleQueue() {
     } catch (error) {
         showError('Ошибка: ' + error.message);
         console.error('Error toggling queue:', error);
-        // При ошибке сбрасываем состояние
-        resetSearchState();
     } finally {
         setIsLoading(false);
     }
@@ -377,7 +336,6 @@ async function checkMatchFound() {
     }
 }
 
-
 // Показать найденный матч
 function showMatchFound(matchId) {
     roomElements.roomImage.src = 'media/door.jpeg';
@@ -390,23 +348,6 @@ function showMatchFound(matchId) {
     
     showError('');
 }
-
-
-function updateUserStatus() {
-    if (matchFound) {
-        roomElements.userStatus.textContent = 'Собеседник найден! Нажми чтобы начать общение';
-    } else if (userInQueue) {
-        roomElements.userStatus.textContent = 'Ты в очереди';
-        startSearchMessages();
-    } else {
-        roomElements.userStatus.textContent = 'Нажми на комнату для поиска собеседника';
-        stopSearchMessages();
-    }
-    // Всегда обновляем картинку при изменении статуса
-    updateRoomImage(currentQueueSize);
-}
-
-
 
 function setIsLoading(loading) {
     isLoading = loading;
@@ -430,11 +371,9 @@ function updateRoomImage(count) {
     }
 }
 
-
 function showError(message) {
     roomElements.error.textContent = message;
 }
-
 
 async function updateQueueData() {
     if (matchFound) return;
@@ -455,8 +394,6 @@ async function updateQueueData() {
         resetSearchState();
     }
 }
-
-
 
 document.addEventListener('DOMContentLoaded', function() {
     // Элементы страниц
@@ -510,7 +447,6 @@ document.addEventListener('DOMContentLoaded', function() {
             startRegistrationBtn.textContent = 'Откройте через Telegram';
         }
     }
-
 
     
     // Показать подсказку для никнейма
