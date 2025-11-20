@@ -132,6 +132,8 @@ let currentMessageIndex = 0;
 let statusCheckInterval = null;
 let matchFound = false;
 let searchMessagesRunning = false;
+let currentShuffledMessages = [];
+
 
 const roomElements = {
     roomImage: document.getElementById('room-image'),
@@ -150,24 +152,18 @@ function shuffleArray(array) {
     return shuffled;
 }
 
-
-let currentShuffledMessages = [];
-
 // Функция для смены сообщений поиска
 function startSearchMessages() {
-    // Останавливаем предыдущие сообщения если они есть
-    stopSearchMessages();
+    if (searchMessageInterval) {
+        clearInterval(searchMessageInterval);
+    }
     
-    // Показываем элемент сообщения
-    roomElements.searchMessage.style.display = 'block';
-    
-    // Создаем новый случайный порядок сообщений
-    currentShuffledMessages = shuffleArray(searchMessages);
+    // Перемешиваем сообщения каждый раз при входе в очередь
+    currentShuffledMessages = [...searchMessages].sort(() => Math.random() - 0.5);
     currentMessageIndex = 0;
+    
     roomElements.searchMessage.textContent = currentShuffledMessages[currentMessageIndex];
     roomElements.searchMessage.style.opacity = '1';
-    
-    searchMessagesRunning = true;
     
     searchMessageInterval = setInterval(() => {
         currentMessageIndex = (currentMessageIndex + 1) % currentShuffledMessages.length;
@@ -185,19 +181,10 @@ function stopSearchMessages() {
         clearInterval(searchMessageInterval);
         searchMessageInterval = null;
     }
-    
-    searchMessagesRunning = false;
-    
-    // Плавно скрываем сообщение
-    if (roomElements.searchMessage) {
-        roomElements.searchMessage.style.opacity = '0';
-        setTimeout(() => {
-            if (roomElements.searchMessage && !searchMessagesRunning) {
-                roomElements.searchMessage.textContent = '';
-                roomElements.searchMessage.style.display = 'none';
-            }
-        }, 500);
-    }
+    roomElements.searchMessage.style.opacity = '0';
+    setTimeout(() => {
+        roomElements.searchMessage.textContent = '';
+    }, 500);
 }
 
 async function initRoom() {
