@@ -155,15 +155,19 @@ let currentShuffledMessages = [];
 
 // Функция для смены сообщений поиска
 function startSearchMessages() {
-    if (searchMessageInterval) {
-        clearInterval(searchMessageInterval);
-    }
+    // Останавливаем предыдущие сообщения если они есть
+    stopSearchMessages();
     
-    // Каждый раз при входе в очередь создаем новый случайный порядок сообщений
+    // Показываем элемент сообщения
+    roomElements.searchMessage.style.display = 'block';
+    
+    // Создаем новый случайный порядок сообщений
     currentShuffledMessages = shuffleArray(searchMessages);
     currentMessageIndex = 0;
     roomElements.searchMessage.textContent = currentShuffledMessages[currentMessageIndex];
     roomElements.searchMessage.style.opacity = '1';
+    
+    searchMessagesRunning = true;
     
     searchMessageInterval = setInterval(() => {
         currentMessageIndex = (currentMessageIndex + 1) % currentShuffledMessages.length;
@@ -177,16 +181,23 @@ function startSearchMessages() {
 }
 
 function stopSearchMessages() {
-    searchMessagesRunning = false;
     if (searchMessageInterval) {
         clearInterval(searchMessageInterval);
         searchMessageInterval = null;
     }
-    roomElements.searchMessage.style.opacity = '0';
-    setTimeout(() => {
-        roomElements.searchMessage.textContent = '';
-        roomElements.searchMessage.style.display = 'none';
-    }, 500);
+    
+    searchMessagesRunning = false;
+    
+    // Плавно скрываем сообщение
+    if (roomElements.searchMessage) {
+        roomElements.searchMessage.style.opacity = '0';
+        setTimeout(() => {
+            if (roomElements.searchMessage && !searchMessagesRunning) {
+                roomElements.searchMessage.textContent = '';
+                roomElements.searchMessage.style.display = 'none';
+            }
+        }, 500);
+    }
 }
 
 async function initRoom() {
@@ -267,10 +278,13 @@ function updateUserStatus() {
     if (matchFound) {
         roomElements.userStatus.textContent = 'Собеседник найден! Нажми чтобы начать общение';
         roomElements.roomImage.src = 'media/door.jpeg';
+        stopSearchMessages(); // Останавливаем сообщения при найденном матче
     } else if (userInQueue) {
         roomElements.userStatus.textContent = 'Ты в очереди';
-        // Убедитесь, что startSearchMessages вызывается при каждом входе в очередь
-        startSearchMessages();
+        // Убедимся, что сообщения запущены
+        if (!searchMessagesRunning) {
+            startSearchMessages();
+        }
     } else {
         roomElements.userStatus.textContent = 'Нажми на комнату для поиска собеседника';
         stopSearchMessages();
@@ -368,26 +382,20 @@ async function checkMatchFound() {
 
 // Показать найденный матч
 function showMatchFound(matchId) {
+    matchFound = true;
+    userInQueue = false;
     roomElements.roomImage.src = 'media/door.jpeg';
     roomElements.userStatus.textContent = 'Собеседник найден! Нажми чтобы начать общение';
+    
+    // Останавливаем сообщения поиска
+    stopSearchMessages();
     
     // Заменяем обработчик на переход в чат
     roomElements.roomImage.onclick = function() {
         window.location.href = `/chat/${matchId}`;
     };
     
-    stopSearchMessages();
     showError('');
-}
-
-function setIsLoading(loading) {
-    isLoading = loading;
-    roomElements.roomImage.classList.toggle('loading', loading);
-    if (loading) {
-        roomElements.userStatus.textContent = 'Загрузка...';
-    } else {
-        updateUserStatus();
-    }
 }
 
 function updateRoomImage(count) {
