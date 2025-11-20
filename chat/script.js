@@ -145,9 +145,11 @@ function startSearchMessages() {
         clearInterval(searchMessageInterval);
     }
     
+    // Немедленно показываем первое сообщение
     currentMessageIndex = 0;
     roomElements.searchMessage.textContent = searchMessages[currentMessageIndex];
     roomElements.searchMessage.style.opacity = '1';
+    roomElements.searchMessage.style.display = 'block';
     
     searchMessageInterval = setInterval(() => {
         currentMessageIndex = (currentMessageIndex + 1) % searchMessages.length;
@@ -168,6 +170,7 @@ function stopSearchMessages() {
     roomElements.searchMessage.style.opacity = '0';
     setTimeout(() => {
         roomElements.searchMessage.textContent = '';
+        roomElements.searchMessage.style.display = 'none';
     }, 500);
 }
 
@@ -179,6 +182,9 @@ async function initRoom() {
     
     // Загружаем начальный статус пользователя
     await checkUserStatus();
+    
+    // Принудительно обновляем статус после проверки
+    updateUserStatus();
     
     // Запускаем периодическую проверку статуса пользователя
     startStatusChecking();
@@ -200,7 +206,7 @@ function startStatusChecking() {
     }, 3000);
 }
 
-// Обновите функцию checkUserStatus
+// Функция проверки статуса пользователя
 async function checkUserStatus() {
     try {
         const userId = await getUserId();
@@ -209,8 +215,20 @@ async function checkUserStatus() {
         const response = await fetch(`${API_WORKER_URL}/queue/${userId}/status`);
         if (response.ok) {
             const data = await response.json();
+            const wasInQueue = userInQueue;
             userInQueue = data.in_queue;
+            
+            // Обновляем статус в любом случае
             updateUserStatus();
+            
+            // Если состояние изменилось с не в очереди на в очереди
+            if (!wasInQueue && userInQueue) {
+                startSearchMessages();
+            }
+            // Если состояние изменилось с в очереди на не в очереди
+            else if (wasInQueue && !userInQueue) {
+                stopSearchMessages();
+            }
             
             // Если пользователь вышел из очереди, проверяем не нашли ли матч
             if (!userInQueue) {
@@ -222,7 +240,7 @@ async function checkUserStatus() {
     }
 }
 
-// Обновите функцию resetSearchState
+// Функция сброса состояния поиска
 function resetSearchState() {
     userInQueue = false;
     matchFound = false;
@@ -232,7 +250,7 @@ function resetSearchState() {
     stopSearchMessages();
 }
 
-// Обновите функцию updateUserStatus для более четкой логики
+// Функция обновления статуса пользователя
 function updateUserStatus() {
     if (matchFound) {
         roomElements.userStatus.textContent = 'Собеседник найден! Нажми чтобы начать общение';
@@ -247,7 +265,7 @@ function updateUserStatus() {
     }
 }
 
-// Обновите функцию toggleQueue для лучшей обработки состояния
+// Функция переключения состояния очереди
 async function toggleQueue() {
     if (isLoading || matchFound) return;
     
@@ -301,8 +319,10 @@ async function toggleQueue() {
         const data = await response.json();
         
         if (data.status === 'accepted') {
-            // После успешного запроса проверяем статус
-            await checkUserStatus();
+            // После успешного запроса принудительно запускаем сообщения
+            userInQueue = true;
+            updateUserStatus();
+            startSearchMessages();
             showError('');
         } else {
             throw new Error(data.message || 'Unknown error');
@@ -316,7 +336,7 @@ async function toggleQueue() {
     }
 }
 
-// Убедитесь что функция checkMatchFound правильно обрабатывает состояние
+// Функция проверки найденного матча
 async function checkMatchFound() {
     try {
         const userId = await getUserId();
