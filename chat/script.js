@@ -134,7 +134,6 @@ let matchFound = false;
 let searchMessagesRunning = false;
 let currentShuffledMessages = [];
 
-
 const roomElements = {
     roomImage: document.getElementById('room-image'),
     userStatus: document.getElementById('user-status'),
@@ -142,15 +141,8 @@ const roomElements = {
     error: document.getElementById('room-error')
 };
 
-// Функция для перемешивания массива в случайном порядке (алгоритм Фишера-Йетса)
-function shuffleArray(array) {
-    const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled;
-}
+
+
 
 // Функция для смены сообщений поиска
 function startSearchMessages() {
@@ -265,16 +257,12 @@ function updateUserStatus() {
     if (matchFound) {
         roomElements.userStatus.textContent = 'Собеседник найден! Нажми чтобы начать общение';
         roomElements.roomImage.src = 'media/door.jpeg';
-        stopSearchMessages(); // Останавливаем сообщения при найденном матче
     } else if (userInQueue) {
         roomElements.userStatus.textContent = 'Ты в очереди';
-        // Убедимся, что сообщения запущены
-        if (!searchMessagesRunning) {
-            startSearchMessages();
-        }
+        // Сообщения запускаются автоматически при изменении состояния
     } else {
         roomElements.userStatus.textContent = 'Нажми на комнату для поиска собеседника';
-        stopSearchMessages();
+        updateRoomImage(currentQueueSize);
     }
 }
 
@@ -369,20 +357,26 @@ async function checkMatchFound() {
 
 // Показать найденный матч
 function showMatchFound(matchId) {
-    matchFound = true;
-    userInQueue = false;
     roomElements.roomImage.src = 'media/door.jpeg';
     roomElements.userStatus.textContent = 'Собеседник найден! Нажми чтобы начать общение';
-    
-    // Останавливаем сообщения поиска
-    stopSearchMessages();
     
     // Заменяем обработчик на переход в чат
     roomElements.roomImage.onclick = function() {
         window.location.href = `/chat/${matchId}`;
     };
     
+    stopSearchMessages();
     showError('');
+}
+
+function setIsLoading(loading) {
+    isLoading = loading;
+    roomElements.roomImage.classList.toggle('loading', loading);
+    if (loading) {
+        roomElements.userStatus.textContent = 'Загрузка...';
+    } else {
+        updateUserStatus();
+    }
 }
 
 function updateRoomImage(count) {
