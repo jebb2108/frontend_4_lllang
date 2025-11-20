@@ -140,24 +140,35 @@ const roomElements = {
     error: document.getElementById('room-error')
 };
 
+// Функция для перемешивания массива в случайном порядке (алгоритм Фишера-Йетса)
+function shuffleArray(array) {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+}
+
+// Перемешиваем массив один раз при загрузке
+let shuffledSearchMessages = shuffleArray(searchMessages);
+
 // Функция для смены сообщений поиска
 function startSearchMessages() {
-    if (searchMessagesRunning) return;
+    if (searchMessageInterval) {
+        clearInterval(searchMessageInterval);
+    }
     
-    searchMessagesRunning = true;
-    
-    // Немедленно показываем первое сообщение
     currentMessageIndex = 0;
-    roomElements.searchMessage.textContent = searchMessages[currentMessageIndex];
+    roomElements.searchMessage.textContent = shuffledSearchMessages[currentMessageIndex];
     roomElements.searchMessage.style.opacity = '1';
-    roomElements.searchMessage.style.display = 'block';
     
     searchMessageInterval = setInterval(() => {
-        currentMessageIndex = (currentMessageIndex + 1) % searchMessages.length;
+        currentMessageIndex = (currentMessageIndex + 1) % shuffledSearchMessages.length;
         roomElements.searchMessage.style.opacity = '0';
         
         setTimeout(() => {
-            roomElements.searchMessage.textContent = searchMessages[currentMessageIndex];
+            roomElements.searchMessage.textContent = shuffledSearchMessages[currentMessageIndex];
             roomElements.searchMessage.style.opacity = '1';
         }, 500);
     }, 3000);
