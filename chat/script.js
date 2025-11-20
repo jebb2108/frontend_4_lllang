@@ -269,10 +269,11 @@ function updateUserStatus() {
         roomElements.roomImage.src = 'media/door.jpeg';
     } else if (userInQueue) {
         roomElements.userStatus.textContent = 'Ты в очереди';
-        // Сообщения запускаются автоматически при изменении состояния
+        // Убедитесь, что startSearchMessages вызывается при каждом входе в очередь
+        startSearchMessages();
     } else {
         roomElements.userStatus.textContent = 'Нажми на комнату для поиска собеседника';
-        updateRoomImage(currentQueueSize);
+        stopSearchMessages();
     }
 }
 
