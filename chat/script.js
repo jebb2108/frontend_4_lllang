@@ -384,7 +384,7 @@ async function showMatchFound(matchId, roomId, userId) {
             const response = await fetch(`${API_BASE_URL}/create_token?user_id=${userId}&room_id=${roomId}`);
             if (response.ok) {
                 const data = await response.json();
-                window.location.href = `/enter/chat?match_id=${matchId}&room_id=${roomId}&token=${data.token}`;
+                window.location.href = `/enter/chat?match_id=${matchId}&room_id=${roomId}&user_id=${userId}&token=${data.token}`;
             } else {
                 console.error("Failed to create token")
             }
