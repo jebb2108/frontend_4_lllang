@@ -346,20 +346,31 @@ async function toggleQueue() {
 async function checkMatchFound() {
     try {
         const userId = await getUserId();
-        if (!userId) return;
+        if (!userId || matchFound) return;
         
         const response = await fetch(`${API_WORKER_URL}/check_match?user_id=${encodeURIComponent(userId)}`);
         if (response.ok) {
             const data = await response.json();
-            if (data.match_id) {
+            if (data.match_id && data.room_id) {
                 matchFound = true;
                 userInQueue = false;
                 showMatchFound(data.room_id, userId);
+                
+                // Остановить все проверки
+                stopStatusChecking();
             }
         }
     } catch (error) {
         console.error('Error checking match found:', error);
     }
+}
+
+function stopStatusChecking() {
+    if (statusCheckInterval) {
+        clearInterval(statusCheckInterval);
+        statusCheckInterval = null;
+    }
+    stopSearchMessages();
 }
 
 // Показать найденный матч
