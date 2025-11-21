@@ -1,52 +1,58 @@
 const API_WS_URL = 'wss://chat.lllang.site';
-const WORKER_API_URL = 'https://chat.lllang.site/api/worker'
+const WORKER_API_URL = 'https://chat.lllang.site/api/worker';
 
-// Функция для надежного получения параметров URL
-function getUrlParams() {
+// Глобальные переменные для параметров
+let appMatchId = null;
+let appRoomId = null;
+let appToken = null;
+
+// Функция инициализации параметров
+function initializeAppParams() {
     const urlParams = new URLSearchParams(window.location.search);
-    const params = {
-        matchId: urlParams.get('match_id'),
-        roomId: urlParams.get('room_id'),
-        token: urlParams.get('token')
-    };
     
-    console.log('URL Parameters:', params);
-    return params;
+    appMatchId = urlParams.get('match_id');
+    appRoomId = urlParams.get('room_id');
+    appToken = urlParams.get('token');
+    
+    console.log('Initialized app params:', {
+        matchId: appMatchId,
+        roomId: appRoomId,
+        token: appToken
+    });
+    
+    // Сохраняем в sessionStorage как резервную копию
+    if (appMatchId) sessionStorage.setItem('appMatchId', appMatchId);
+    if (appRoomId) sessionStorage.setItem('appRoomId', appRoomId);
+    if (appToken) sessionStorage.setItem('appToken', appToken);
+    
+    // Проверяем наличие обязательных параметров
+    if (!appRoomId || !appToken) {
+        console.error('Missing required parameters:', { roomId: appRoomId, token: appToken });
+        alert('Error: Missing required parameters. Please return to the main page.');
+        return false;
+    }
+    
+    return true;
 }
 
-// Получаем параметры URL
-const urlParams = getUrlParams();
-const { matchId, roomId, token } = urlParams;
-
-// Сохраняем параметры в sessionStorage для надежности
-if (matchId) sessionStorage.setItem('matchId', matchId);
-if (roomId) sessionStorage.setItem('roomId', roomId);
-if (token) sessionStorage.setItem('token', token);
-
-// Функция для надежного получения matchId
+// Функции для получения параметров с fallback
 function getMatchId() {
-    return matchId || sessionStorage.getItem('matchId');
+    return appMatchId || sessionStorage.getItem('appMatchId');
 }
 
-// Функция для надежного получения roomId
 function getRoomId() {
-    return roomId || sessionStorage.getItem('roomId');
+    return appRoomId || sessionStorage.getItem('appRoomId');
 }
 
-// Функция для надежного получения token
 function getToken() {
-    return token || sessionStorage.getItem('token');
+    return appToken || sessionStorage.getItem('appToken');
 }
 
-if (!getRoomId() || !getToken()) {
-    console.error('Room ID or Token missing');
-}
-
-// Переменные для хранения состояния
+// Переменные для хранения состояния чата
 let userName = '';
-let websocket;
+let websocket = null;
 let partnerConnected = false;
-let timerInterval;
+let timerInterval = null;
 let partnerNickname = null;
 let partnerDiscovered = false;
 
@@ -56,11 +62,14 @@ function connectWebSocket() {
     const currentToken = getToken();
     
     if (!currentRoomId || !currentToken) {
-        console.error('Cannot connect: Room ID or Token missing');
+        console.error('Cannot connect: Missing roomId or token');
+        alert('Cannot connect to chat. Missing required parameters.');
         return;
     }
     
     const wsUrl = `${API_WS_URL}/ws/chat?room_id=${currentRoomId}&token=${currentToken}`;
+    console.log('Connecting to WebSocket:', wsUrl);
+    
     websocket = new WebSocket(wsUrl);
 
     websocket.onopen = function() {
@@ -69,7 +78,7 @@ function connectWebSocket() {
         
         // Таймер блокировки чата через 15 минут
         setTimeout(() => {
-            endSession();
+            endSession('Chat session expired');
         }, 900000);
     };
 
@@ -82,8 +91,15 @@ function connectWebSocket() {
         }
     };
 
-    websocket.onclose = function() {
-        console.log('WebSocket connection closed');
+    websocket.onclose = function(event) {
+        console.log('WebSocket connection closed:', event.code, event.reason);
+        if (event.code !== 1000) {
+            setTimeout(() => {
+                if (!partnerConnected) {
+                    connectWebSocket();
+                }
+            }, 3000);
+        }
     };
 
     websocket.onerror = function(error) {
@@ -98,7 +114,6 @@ function setPartnerNickname(nickname) {
         document.getElementById('partnerNickname').textContent = nickname;
         console.log('Partner nickname set to:', nickname);
         
-        // Если партнер подключился, но интерфейс еще не переключен
         if (!partnerConnected) {
             switchToChatInterface();
         }
@@ -120,7 +135,6 @@ function startWaitTimer() {
     const progressCircle = document.querySelector('.timer-progress');
     const circumference = 2 * Math.PI * 54;
     
-    // Сбросим предыдущий интервал, если он существует
     if (timerInterval) {
         clearInterval(timerInterval);
     }
@@ -151,7 +165,6 @@ function updatePartnerStatus(isOnline) {
         partnerStatusElement.className = isOnline ? 'status-indicator online' : 'status-indicator offline';
     }
     
-    // Если партнер онлайн, но ник еще не установлен, используем "Partner"
     if (isOnline && !partnerNickname && !partnerConnected) {
         switchToChatInterface();
     }
@@ -159,23 +172,18 @@ function updatePartnerStatus(isOnline) {
 
 // Переключение на интерфейс чата
 function switchToChatInterface() {
-    // Скрываем интерфейс ожидания
     document.querySelector('.waiting-header').style.display = 'none';
     document.getElementById('waitingContainer').style.display = 'none';
     
-    // Показываем интерфейс чата
     document.querySelector('.connected-header').style.display = 'flex';
     document.querySelector('.input-container').style.display = 'flex';
     
-    // Обновляем имя партнера
     if (partnerNickname) {
         document.getElementById('partnerNickname').textContent = partnerNickname;
     }
     
-    // Устанавливаем статус партнера в онлайн
     updatePartnerStatus(true);
     
-    // Очищаем таймер ожидания
     if (timerInterval) {
         clearInterval(timerInterval);
         timerInterval = null;
@@ -198,17 +206,14 @@ function handleWebSocketMessage(data) {
             break;
             
         case 'message_history':
-            // Отображаем историю сообщений
             data.messages.forEach(msg => {
                 addMessageToChat(msg, msg.sender === userName);
                 
-                // Если есть сообщения от других пользователей, устанавливаем ник партнера
                 if (msg.sender !== userName && !partnerDiscovered) {
                     setPartnerNickname(msg.sender);
                 }
             });
             
-            // Проверяем, есть ли сообщения от партнера в истории
             const hasPartnerMessages = data.messages.some(msg => msg.sender !== userName);
             if (hasPartnerMessages && !partnerConnected) {
                 switchToChatInterface();
@@ -216,14 +221,12 @@ function handleWebSocketMessage(data) {
             break;
             
         case 'new_message':
-            // Устанавливаем ник отправителя как партнера
             if (data.message.sender !== userName && !partnerDiscovered) {
                 setPartnerNickname(data.message.sender);
             }
             
             addMessageToChat(data.message, data.message.sender === userName);
             
-            // Если это сообщение от партнера и мы еще не в режиме чата
             if (data.message.sender !== userName && !partnerConnected) {
                 switchToChatInterface();
             }
@@ -235,7 +238,6 @@ function handleWebSocketMessage(data) {
 
         case 'user_status':
             if (data.username !== userName) {
-                // Устанавливаем ник партнера при изменении статуса
                 if (!partnerDiscovered) {
                     setPartnerNickname(data.username);
                 }
@@ -244,7 +246,6 @@ function handleWebSocketMessage(data) {
             break;
 
         case 'online_users':
-            // Устанавливаем ник первого онлайн пользователя как партнера
             const otherUsers = data.users.filter(user => user !== userName);
             if (otherUsers.length > 0 && !partnerDiscovered) {
                 setPartnerNickname(otherUsers[0]);
@@ -258,7 +259,7 @@ function endSession(reason) {
     console.log('Ending session:', reason);
     
     if (websocket) {
-        websocket.close();
+        websocket.close(1000, "Session ended");
     }
     
     document.getElementById('messageInput').disabled = true;
@@ -270,7 +271,6 @@ function endSession(reason) {
     sessionEndedMessage.textContent = reason || 'Session ended. Chat is locked.';
     container.appendChild(sessionEndedMessage);
     
-    // Останавливаем таймер
     if (timerInterval) {
         clearInterval(timerInterval);
         timerInterval = null;
@@ -314,7 +314,6 @@ function addMessageToChat(messageData, isMyMessage = false) {
     setTimeout(() => {
         const textHeight = messageText.offsetHeight;
         const lineHeight = parseFloat(getComputedStyle(messageText).lineHeight);
-        // Считаем, что если высота текста не более 1.5 lineHeight, то это одна строка
         const isShortMessage = textHeight <= lineHeight * 1.5;
         
         if (isShortMessage) {
@@ -347,22 +346,27 @@ async function handleExit() {
     console.log('Exit clicked, matchId:', currentMatchId);
     
     if (!currentMatchId) {
-        alert('Error: Match ID not found. Cannot exit chat.');
+        alert('Error: Match ID not found. Please check the URL parameters.');
+        console.error('Match ID is null or undefined');
         return;
     }
     
     if (confirm('Are you sure you want to exit the chat?')) {
         try {
+            console.log('Sending exit request with matchId:', currentMatchId);
             const response = await fetch(`${WORKER_API_URL}/cancel_match?match_id=${currentMatchId}&is_aborted=false`);
+            
             if (response.ok) {
+                console.log('Exit request successful');
                 // Очищаем sessionStorage перед выходом
-                sessionStorage.removeItem('matchId');
-                sessionStorage.removeItem('roomId');
-                sessionStorage.removeItem('token');
+                sessionStorage.removeItem('appMatchId');
+                sessionStorage.removeItem('appRoomId');
+                sessionStorage.removeItem('appToken');
                 window.history.back();
             } else {
-                console.error('Failed to cancel match:', response.status);
-                alert('Failed to exit chat. Please try again.');
+                const errorText = await response.text();
+                console.error('Failed to cancel match:', response.status, errorText);
+                alert(`Failed to exit chat: ${response.status}. Please try again.`);
             }
         } catch (error) {
             console.error('Error exiting chat:', error);
@@ -377,22 +381,27 @@ async function goBack() {
     console.log('Go back clicked, matchId:', currentMatchId);
     
     if (!currentMatchId) {
-        alert('Error: Match ID not found. Cannot leave.');
+        alert('Error: Match ID not found. Please check the URL parameters.');
+        console.error('Match ID is null or undefined');
         return;
     }
     
     if (confirm('Are you sure you want to leave?')) {
         try {
+            console.log('Sending cancel request with matchId:', currentMatchId);
             const response = await fetch(`${WORKER_API_URL}/cancel_match?match_id=${currentMatchId}&is_aborted=true`);
+            
             if (response.ok) {
+                console.log('Cancel request successful');
                 // Очищаем sessionStorage перед выходом
-                sessionStorage.removeItem('matchId');
-                sessionStorage.removeItem('roomId');
-                sessionStorage.removeItem('token');
+                sessionStorage.removeItem('appMatchId');
+                sessionStorage.removeItem('appRoomId');
+                sessionStorage.removeItem('appToken');
                 window.history.back();
             } else {
-                console.error('Failed to cancel match:', response.status);
-                alert('Failed to leave. Please try again.');
+                const errorText = await response.text();
+                console.error('Failed to cancel match:', response.status, errorText);
+                alert(`Failed to leave: ${response.status}. Please try again.`);
             }
         } catch (error) {
             console.error('Error going back to queue:', error);
@@ -403,10 +412,30 @@ async function goBack() {
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded, matchId:', getMatchId());
+    console.log('DOM loaded, initializing app...');
     
+    // Инициализируем параметры приложения
+    if (!initializeAppParams()) {
+        // Если параметры не валидны, показываем ошибку
+        document.getElementById('waitingContainer').style.display = 'none';
+        const container = document.getElementById('messagesContainer');
+        const errorMessage = document.createElement('div');
+        errorMessage.className = 'session-ended-message';
+        errorMessage.textContent = 'Error: Invalid or missing parameters. Please return to the main page.';
+        container.appendChild(errorMessage);
+        return;
+    }
+    
+    console.log('App params initialized successfully:', {
+        matchId: getMatchId(),
+        roomId: getRoomId(),
+        token: getToken() ? '***' : 'missing'
+    });
+    
+    // Подключаемся к WebSocket
     connectWebSocket();
     
+    // Настраиваем обработчики событий
     const messageInput = document.getElementById('messageInput');
     const sendButton = document.getElementById('sendButton');
     
@@ -437,4 +466,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('click', function() {
         document.querySelector('.dropdown-menu').classList.remove('show');
     });
+    
+    // Добавляем обработчик для кнопки Cancel в режиме ожидания
+    document.querySelector('.cancel-button').addEventListener('click', goBack);
 });
