@@ -3,6 +3,7 @@ const WORKER_API_URL = 'https://chat.lllang.site/api/worker'
 
 // Получаем room_id и token из URL параметров
 const urlParams = new URLSearchParams(window.location.search);
+const userId = urlParams.get('user_id');
 const matchId = urlParams.get('match_id');
 const roomId = urlParams.get('room_id');
 const token = urlParams.get('token');
@@ -306,7 +307,7 @@ function handleReport() {
 async function handleExit() {
     if (confirm('Are you sure you want to exit the chat?')) {
         try { 
-            const response = await fetch(`${WORKER_API_URL}/cancel_match?match_id=${matchId}&is_aborted=${false}`)
+            const response = await fetch(`${WORKER_API_URL}/cancel_match?user_id=${userId}&is_aborted=false`)
             if (response.ok) {
                 window.history.back();
             }
@@ -319,7 +320,7 @@ async function handleExit() {
 async function goBack() {
     if (confirm('Are you sure you want to leave?')) {
         try { 
-            const response = await fetch(`${WORKER_API_URL}/cancel_match?match_id=${matchId}$is_aborted=${true}`)
+            const response = await fetch(`${WORKER_API_URL}/cancel_match?match_id=${matchId}&is_aborted=true`)
             if (response.ok) {
                 window.history.back();
             }
