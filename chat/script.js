@@ -357,7 +357,7 @@ async function checkMatchFound() {
                 showMatchFound(data.room_id, userId);
                 
                 // Остановить все проверки
-                stopStatusChecking();
+                // stopStatusChecking();
             }
         }
     } catch (error) {
@@ -365,13 +365,13 @@ async function checkMatchFound() {
     }
 }
 
-function stopStatusChecking() {
-    if (statusCheckInterval) {
-        clearInterval(statusCheckInterval);
-        statusCheckInterval = null;
-    }
-    stopSearchMessages();
-}
+// function stopStatusChecking() {
+//     if (statusCheckInterval) {
+//         clearInterval(statusCheckInterval);
+//         statusCheckInterval = null;
+//     }
+//     stopSearchMessages();
+// }
 
 // Показать найденный матч
 async function showMatchFound(roomId, userId) {
