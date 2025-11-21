@@ -303,16 +303,23 @@ function handleReport() {
     document.querySelector('.dropdown-menu').classList.remove('show');
 }
 
-function handleExit() {
+async function handleExit() {
     if (confirm('Are you sure you want to exit the chat?')) {
-        window.history.back();
+        try { 
+            const response = await fetch(`${WORKER_API_URL}/cancel_match?match_id=${matchId}&is_aborted=${false}`)
+            if (response.ok) {
+                window.history.back();
+            }
+        } catch (error) {
+            console.error('Error going back to queue:', error);
+        }
     }
 }
 
 async function goBack() {
     if (confirm('Are you sure you want to leave?')) {
         try { 
-            const response = await fetch(`${WORKER_API_URL}/cancel_match?match_id=${matchId}`)
+            const response = await fetch(`${WORKER_API_URL}/cancel_match?match_id=${matchId}$is_aborted=${true}`)
             if (response.ok) {
                 window.history.back();
             }
