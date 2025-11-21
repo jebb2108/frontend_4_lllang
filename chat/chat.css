@@ -176,15 +176,16 @@ body {
     border: 1px solid #e0d9c0;
 }
 
-
 .message-text {
     word-wrap: break-word;
     overflow-wrap: break-word;
     word-break: break-word;
     line-height: 1.4;
-    margin-right: 0;
     white-space: normal;
     max-width: 100%;
+    /* Убираем лишние отступы */
+    margin: 0;
+    padding: 0;
 }
 
 .message-time {
@@ -194,6 +195,9 @@ body {
     position: absolute;
     bottom: 8px;
     right: 12px;
+    /* Убираем лишние отступы */
+    margin: 0;
+    padding: 0;
 }
 
 .message.my-message .message-time {
@@ -215,7 +219,6 @@ body {
 .message-content.short-message .message-text {
     margin-right: 8px;
     flex: 1;
-    /* Для коротких сообщений ограничиваем ширину текста */
     max-width: calc(100% - 40px);
 }
 
@@ -225,18 +228,20 @@ body {
     flex-shrink: 0;
 }
 
-/* Для длинных сообщений - время под текстом */
+/* Для длинных сообщений - время под текстом, но без лишнего отступа */
 .message-content:not(.short-message) .message-text {
-    /* Добавляем отступ снизу для времени */
-    padding-bottom: 16px;
-    /* Убираем ограничение по ширине для длинных сообщений */
-    max-width: 100%;
+    /* Добавляем минимальный отступ только если нужно */
+    margin-bottom: 2px;
 }
 
 .message-content:not(.short-message) .message-time {
     position: static;
     text-align: right;
-    margin-top: 4px;
+    margin-top: 2px;
+    /* Убираем абсолютное позиционирование для длинных сообщений */
+    position: relative;
+    bottom: auto;
+    right: auto;
 }
 
 .waiting-container {

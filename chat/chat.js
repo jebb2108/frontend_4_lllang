@@ -310,7 +310,7 @@ function handleExit() {
 async function goBack() {
     if (confirm('Are you sure you want to leave?')) {
         try { 
-            const response = await fetch(`${WORKER_API_URL}/cancel_match?match_id=${matchId}`)
+            const response = await fetch(`${WORKER_API_URL}/cancel_match?match_id=${matchId}&is_aborted=${false}`)
             if (response.ok) {
                 window.history.back();
             }
