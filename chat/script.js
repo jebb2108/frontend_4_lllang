@@ -354,7 +354,7 @@ async function checkMatchFound() {
             if (data.match_id && data.room_id) {
                 matchFound = true;
                 userInQueue = false;
-                showMatchFound(data.room_id, userId);
+                showMatchFound(data.match_id, data.room_id, userId);
                 
                 // Остановить все проверки
                 // stopStatusChecking();
@@ -374,7 +374,7 @@ async function checkMatchFound() {
 // }
 
 // Показать найденный матч
-async function showMatchFound(roomId, userId) {
+async function showMatchFound(matchId, roomId, userId) {
     roomElements.roomImage.src = 'media/door.jpeg';
     roomElements.userStatus.textContent = 'Собеседник найден! Нажми чтобы начать общение';
     
@@ -384,7 +384,7 @@ async function showMatchFound(roomId, userId) {
             const response = await fetch(`${API_BASE_URL}/create_token?user_id=${userId}&room_id=${roomId}`);
             if (response.ok) {
                 const data = await response.json();
-                window.location.href = `/enter/chat?room_id=${roomId}&token=${data.token}`;
+                window.location.href = `/enter/chat?match_id=${matchId}&room_id=${roomId}&token=${data.token}`;
             } else {
                 console.error("Failed to create token")
             }

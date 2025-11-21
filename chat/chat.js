@@ -1,7 +1,9 @@
 const API_WS_URL = 'wss://chat.lllang.site';
+const WORKER_API_URL = 'https://chat.lllang.site/api/worker'
 
 // Получаем room_id и token из URL параметров
 const urlParams = new URLSearchParams(window.location.search);
+const matchId = urlParams.get('match_id');
 const roomId = urlParams.get('room_id');
 const token = urlParams.get('token');
 
@@ -11,12 +13,8 @@ if (!roomId || !token) {
 
 // Переменные для хранения состояния
 let userName = '';
-let userInfoReceived = false;
-let pendingMessages = [];
-let sessionTimer;
 let websocket;
 let partnerConnected = false;
-let waitTimer;
 let timerInterval;
 
 // Подключаемся к WebSocket серверу
@@ -24,14 +22,12 @@ function connectWebSocket() {
     const wsUrl = `${API_WS_URL}/ws/chat?room_id=${roomId}&token=${token}`;
     websocket = new WebSocket(wsUrl);
 
-    websocket.onopen = function(event) {
+    websocket.onopen = function() {
         console.log('WebSocket connection established');
-        
-        // Показываем интерфейс ожидания
         showWaitingInterface();
         
-        // Устанавливаем таймер блокировки чата через 15 минут
-        sessionTimer = setTimeout(() => {
+        // Таймер блокировки чата через 15 минут
+        setTimeout(() => {
             endSession();
         }, 900000);
     };
@@ -45,30 +41,15 @@ function connectWebSocket() {
         }
     };
 
-    websocket.onerror = function(error) {
-        console.error('WebSocket error:', error);
-    };
-
-    websocket.onclose = function(event) {
-        console.log('WebSocket connection closed:', event.code, event.reason);
-        // Переподключение через 3 секунды
+    websocket.onclose = function() {
+        console.log('WebSocket connection closed');
         setTimeout(connectWebSocket, 3000);
     };
 }
 
 // Показать интерфейс ожидания
 function showWaitingInterface() {
-    const container = document.getElementById('messagesContainer');
-    container.innerHTML = `
-        <div class="system-message">
-            Chat started. Messages will disappear in 15 minutes
-        </div>
-    `;
-    
-    // Показываем контейнер ожидания
     document.getElementById('waitingContainer').style.display = 'flex';
-    
-    // Запускаем таймер ожидания
     startWaitTimer();
 }
 
@@ -77,12 +58,10 @@ function startWaitTimer() {
     let timeLeft = 30;
     const timerElement = document.getElementById('waitingTimer');
     const progressCircle = document.querySelector('.timer-progress');
-    const circumference = 2 * Math.PI * 54; // 2πr
-    const totalTime = 30;
+    const circumference = 2 * Math.PI * 54;
     
-    // Обновляем прогресс-бар
     const updateProgress = () => {
-        const offset = circumference - (timeLeft / totalTime) * circumference;
+        const offset = circumference - (timeLeft / 30) * circumference;
         progressCircle.style.strokeDashoffset = offset;
     };
     
@@ -100,10 +79,16 @@ function startWaitTimer() {
     }, 1000);
 }
 
+// Обновление статуса партнера
+function updatePartnerStatus(isOnline) {
+    const partnerStatusElement = document.getElementById('partnerStatus');
+    if (partnerStatusElement) {
+        partnerStatusElement.className = isOnline ? 'status-indicator online' : 'status-indicator offline';
+    }
+}
+
 // Переключение на интерфейс чата
 function switchToChatInterface(partnerName) {
-    console.log('Switching to chat interface with partner:', partnerName);
-    
     // Скрываем интерфейс ожидания
     document.querySelector('.waiting-header').style.display = 'none';
     document.getElementById('waitingContainer').style.display = 'none';
@@ -111,7 +96,14 @@ function switchToChatInterface(partnerName) {
     // Показываем интерфейс чата
     document.querySelector('.connected-header').style.display = 'flex';
     document.querySelector('.input-container').style.display = 'flex';
-    document.getElementById('partnerNickname').textContent = partnerName || 'Partner';
+    
+    // Обновляем имя партнера
+    if (partnerName) {
+        document.getElementById('partnerNickname').textContent = partnerName;
+    }
+    
+    // Устанавливаем статус партнера в онлайн
+    updatePartnerStatus(true);
     
     // Очищаем таймер ожидания
     if (timerInterval) {
@@ -119,14 +111,6 @@ function switchToChatInterface(partnerName) {
     }
     
     partnerConnected = true;
-    
-    // Добавляем системное сообщение о подключении партнера
-    const container = document.getElementById('messagesContainer');
-    const connectedMessage = document.createElement('div');
-    connectedMessage.className = 'system-message connected-message';
-    connectedMessage.textContent = `${partnerName || 'Partner'} joined the chat`;
-    container.appendChild(connectedMessage);
-    container.scrollTop = container.scrollHeight;
 }
 
 // Обработчик сообщений от сервера
@@ -136,33 +120,19 @@ function handleWebSocketMessage(data) {
     switch(data.type) {
         case 'user_info':
             userName = data.username;
-            userInfoReceived = true;
-            
-            // Обрабатываем сообщения, которые пришли до получения информации о пользователе
-            processPendingMessages();
             break;
             
         case 'message_history':
-            const container = document.getElementById('messagesContainer');
-            
-            // Проверяем, есть ли сообщения от других пользователей
-            const hasOtherUsers = data.messages.some(msg => msg.sender !== userName);
-            if (hasOtherUsers && !partnerConnected) {
-                const otherUser = data.messages.find(msg => msg.sender !== userName)?.sender;
-                switchToChatInterface(otherUser);
+            // Если есть сообщения от других пользователей, переключаем интерфейс
+            const otherMessages = data.messages.filter(msg => msg.sender !== userName);
+            if (otherMessages.length > 0 && !partnerConnected) {
+                switchToChatInterface(otherMessages[0].sender);
             }
             
-            if (userInfoReceived) {
-                // Очищаем только если нет системного сообщения о подключении
-                if (!partnerConnected) {
-                    container.innerHTML = '';
-                }
-                data.messages.forEach(msg => {
-                    addMessageToChat(msg, msg.sender === userName);
-                });
-            } else {
-                pendingMessages = data.messages;
-            }
+            // Отображаем историю сообщений
+            data.messages.forEach(msg => {
+                addMessageToChat(msg, msg.sender === userName);
+            });
             break;
             
         case 'new_message':
@@ -171,64 +141,17 @@ function handleWebSocketMessage(data) {
                 switchToChatInterface(data.message.sender);
             }
             
-            if (userInfoReceived) {
-                addMessageToChat(data.message, data.message.sender === userName);
-            } else {
-                pendingMessages.push(data.message);
-            }
+            addMessageToChat(data.message, data.message.sender === userName);
             break;
             
-        case 'session_ended':
-            endSession();
+        case 'partner_status':
+            updatePartnerStatus(data.is_online);
             
-            // Очищаем таймер, так как сессия уже завершена
-            if (sessionTimer) {
-                clearTimeout(sessionTimer);
+            // Если партнер онлайн и мы еще не переключились - переключаем интерфейс
+            if (data.is_online && !partnerConnected) {
+                switchToChatInterface('Partner');
             }
             break;
-            
-        case 'user_joined':
-        case 'partner_connected':
-            // Если другой пользователь присоединился, переключаем интерфейс
-            if (!partnerConnected) {
-                switchToChatInterface(data.username || 'Partner');
-            }
-            break;
-            
-        case 'partner_disconnected':
-            if (partnerConnected) {
-                const container = document.getElementById('messagesContainer');
-                const disconnectedMessage = document.createElement('div');
-                disconnectedMessage.className = 'system-message';
-                disconnectedMessage.textContent = `${data.username || 'Partner'} left the chat`;
-                container.appendChild(disconnectedMessage);
-                container.scrollTop = container.scrollHeight;
-            }
-            break;
-    }
-}
-
-// Функция для обработки ожидающих сообщений
-function processPendingMessages() {
-    const container = document.getElementById('messagesContainer');
-    
-    if (pendingMessages.length > 0) {
-        // Проверяем, есть ли сообщения от других пользователей
-        const hasOtherUsers = pendingMessages.some(msg => msg.sender !== userName);
-        if (hasOtherUsers && !partnerConnected) {
-            const otherUser = pendingMessages.find(msg => msg.sender !== userName)?.sender;
-            switchToChatInterface(otherUser);
-        }
-        
-        if (!partnerConnected) {
-            container.innerHTML = '';
-        }
-        
-        pendingMessages.forEach(msg => {
-            addMessageToChat(msg, msg.sender === userName);
-        });
-        
-        pendingMessages = [];
     }
 }
 
@@ -242,7 +165,6 @@ function endSession(reason) {
     sessionEndedMessage.className = 'session-ended-message';
     sessionEndedMessage.textContent = reason || 'Session ended. Chat is locked.';
     container.appendChild(sessionEndedMessage);
-    container.scrollTop = container.scrollHeight;
 }
 
 // Функция добавления сообщения в чат
@@ -255,13 +177,9 @@ function addMessageToChat(messageData, isMyMessage = false) {
     const date = new Date(messageData.created_at);
     
     if (isNaN(date.getTime())) {
-        console.error("Invalid date:", messageData.created_at);
         messageTime = "now";
     } else {
-        messageTime = date.toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit'
-        });
+        messageTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
 
     messageDiv.innerHTML = `
@@ -272,7 +190,6 @@ function addMessageToChat(messageData, isMyMessage = false) {
     `;
 
     container.appendChild(messageDiv);
-    // Прокручиваем к последнему сообщению
     container.scrollTop = container.scrollHeight;
 }
 
@@ -282,10 +199,7 @@ function sendMessage() {
     const message = messageInput.value.trim();
 
     if (message && websocket && websocket.readyState === WebSocket.OPEN) {
-        const messageData = {
-            text: message
-        };
-        websocket.send(JSON.stringify(messageData));
+        websocket.send(JSON.stringify({ text: message }));
         messageInput.value = '';
     }
 }
@@ -293,7 +207,6 @@ function sendMessage() {
 // Функции для меню
 function handleReport() {
     alert('Report function will be implemented');
-    // Закрываем меню
     document.querySelector('.dropdown-menu').classList.remove('show');
 }
 
@@ -304,18 +217,23 @@ function handleExit() {
     document.querySelector('.dropdown-menu').classList.remove('show');
 }
 
-function goBack() {
+async function goBack() {
     if (confirm('Are you sure you want to leave?')) {
-        window.history.back();
+        try { 
+            const response = await fetch(`${WORKER_API_URL}/cancel_match?match_id=${matchId}`)
+            if (response.ok) {
+                window.history.back();
+            }
+        } catch (error) {
+            console.error('Error going back to queue:', error);
+        }
     }
 }
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
-    // Подключаем WebSocket
     connectWebSocket();
     
-    // Настраиваем обработчики событий
     const messageInput = document.getElementById('messageInput');
     const sendButton = document.getElementById('sendButton');
     
@@ -337,10 +255,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelector('.dropdown-menu').classList.toggle('show');
     });
     
-    // Закрытие меню при клике вне его
     document.addEventListener('click', function() {
         document.querySelector('.dropdown-menu').classList.remove('show');
     });
-    
-    console.log('Chat initialized');
 });

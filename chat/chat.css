@@ -51,28 +51,28 @@ body {
     display: none;
 }
 
-.user-info {
+.partner-info {
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
-.user-nickname {
+.partner-nickname {
     font-weight: 600;
     font-size: 1.1rem;
 }
 
-.user-status {
-    width: 10px;
-    height: 10px;
+.status-indicator {
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
 }
 
-.user-status.online {
+.status-indicator.online {
     background-color: #4CAF50;
 }
 
-.user-status.offline {
+.status-indicator.offline {
     background-color: #9E9E9E;
 }
 
@@ -132,13 +132,11 @@ body {
     padding: 20px;
     overflow-y: auto;
     background-color: #f8f5ec;
-    position: relative;
 }
 
 .message {
     margin-bottom: 15px;
     max-width: 85%;
-    animation: fadeIn 0.3s ease-in;
 }
 
 .message.my-message {
@@ -150,7 +148,6 @@ body {
     border-radius: 18px;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
     border: 1px solid #f0e6d2;
-    position: relative;
     display: inline-block;
     max-width: 100%;
 }
@@ -218,7 +215,7 @@ body {
 
 .timer-progress {
     transition: stroke-dashoffset 1s linear;
-    stroke-dasharray: 339.292; /* 2 * π * 54 */
+    stroke-dasharray: 339.292;
     stroke-dashoffset: 0;
 }
 
@@ -246,12 +243,10 @@ body {
     cursor: pointer;
     font-family: 'Georgia', serif;
     font-size: 1rem;
-    transition: all 0.3s;
 }
 
 .cancel-button:hover {
     background-color: #e0e0e0;
-    border-color: #ccc;
 }
 
 .input-container {
@@ -271,12 +266,10 @@ body {
     font-size: 1rem;
     background: #fff;
     font-family: 'Georgia', serif;
-    transition: all 0.3s;
 }
 
 #messageInput:focus {
     border-color: #2e7d32;
-    box-shadow: 0 0 0 3px rgba(46,125,50,0.2);
 }
 
 #sendButton {
@@ -287,17 +280,11 @@ body {
     border-radius: 24px;
     cursor: pointer;
     font-weight: 600;
-    transition: background-color 0.2s;
     font-size: 14px;
 }
 
 #sendButton:hover {
     background-color: #388e3c;
-}
-
-#sendButton:disabled {
-    background-color: #9ca3af;
-    cursor: not-allowed;
 }
 
 .system-message {
@@ -311,11 +298,6 @@ body {
     border-left: 3px solid #2e7d32;
 }
 
-.connected-message {
-    background-color: #e8f5e8;
-    border-left-color: #4CAF50;
-}
-
 .session-ended-message {
     text-align: center;
     color: #c62828;
@@ -324,36 +306,4 @@ body {
     background-color: #fef2f2;
     border-radius: 8px;
     margin: 20px 0;
-    border: 1px solid #f0e6d2;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.message.my-message .message-content {
-    box-shadow: 0 3px 15px rgba(46,125,50,0.2);
-}
-
-.message.other-message .message-content {
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-}
-
-.messages-container::-webkit-scrollbar {
-    width: 6px;
-}
-
-.messages-container::-webkit-scrollbar-track {
-    background: #f0ede3;
-    border-radius: 3px;
-}
-
-.messages-container::-webkit-scrollbar-thumb {
-    background: #e0d9c0;
-    border-radius: 3px;
-}
-
-.messages-container::-webkit-scrollbar-thumb:hover {
-    background: #2e7d32;
 }
