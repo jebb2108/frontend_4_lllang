@@ -16,6 +16,7 @@ let userName = '';
 let websocket;
 let partnerConnected = false;
 let timerInterval;
+let partnerNickname = 'Partner'; // По умолчанию
 
 // Подключаемся к WebSocket серверу
 function connectWebSocket() {
@@ -99,6 +100,7 @@ function switchToChatInterface(partnerName) {
     
     // Обновляем имя партнера
     if (partnerName) {
+        partnerNickname = partnerName;
         document.getElementById('partnerNickname').textContent = partnerName;
     }
     
@@ -149,7 +151,29 @@ function handleWebSocketMessage(data) {
             
             // Если партнер онлайн и мы еще не переключились - переключаем интерфейс
             if (data.is_online && !partnerConnected) {
-                switchToChatInterface('Partner');
+                switchToChatInterface(partnerNickname);
+            }
+            break;
+
+        case 'user_status':
+            // Обновляем статус конкретного пользователя
+            if (data.username !== userName) {
+                updatePartnerStatus(data.is_online);
+                if (data.is_online && !partnerConnected) {
+                    partnerNickname = data.username;
+                    document.getElementById('partnerNickname').textContent = data.username;
+                    switchToChatInterface(data.username);
+                }
+            }
+            break;
+
+        case 'online_users':
+            // Обработка списка онлайн пользователей
+            const otherUsers = data.users.filter(user => user !== userName);
+            if (otherUsers.length > 0 && !partnerConnected) {
+                partnerNickname = otherUsers[0];
+                document.getElementById('partnerNickname').textContent = otherUsers[0];
+                switchToChatInterface(otherUsers[0]);
             }
             break;
     }
@@ -182,12 +206,25 @@ function addMessageToChat(messageData, isMyMessage = false) {
         messageTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
 
-    messageDiv.innerHTML = `
-        <div class="message-content">
-            <div class="message-text">${messageData.text}</div>
-            <div class="message-time">${messageTime}</div>
-        </div>
-    `;
+    const messageContent = document.createElement('div');
+    messageContent.className = 'message-content';
+    
+    const messageText = document.createElement('div');
+    messageText.className = 'message-text';
+    messageText.textContent = messageData.text;
+
+    const messageTimeElement = document.createElement('div');
+    messageTimeElement.className = 'message-time';
+    messageTimeElement.textContent = messageTime;
+
+    messageContent.appendChild(messageText);
+    messageContent.appendChild(messageTimeElement);
+    messageDiv.appendChild(messageContent);
+
+    // Проверяем длину сообщения и добавляем класс для длинных сообщений
+    if (messageData.text.length > 50) {
+        messageContent.classList.add('long-message');
+    }
 
     container.appendChild(messageDiv);
     container.scrollTop = container.scrollHeight;
@@ -212,9 +249,8 @@ function handleReport() {
 
 function handleExit() {
     if (confirm('Are you sure you want to exit the chat?')) {
-        window.close();
+        window.history.back();
     }
-    document.querySelector('.dropdown-menu').classList.remove('show');
 }
 
 async function goBack() {
@@ -253,6 +289,13 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelector('.menu-dots').addEventListener('click', function(e) {
         e.stopPropagation();
         document.querySelector('.dropdown-menu').classList.toggle('show');
+    });
+    
+    // Обработчик для кнопки Exit
+    document.getElementById('exitButton').addEventListener('click', function(e) {
+        e.stopPropagation();
+        handleExit();
+        document.querySelector('.dropdown-menu').classList.remove('show');
     });
     
     document.addEventListener('click', function() {

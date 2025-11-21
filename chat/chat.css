@@ -14,14 +14,11 @@ body {
     color: #5a5a5a;
 }
 
+/* Растянуть на весь экран */
 .chat-container {
-    width: 100%;
-    max-width: 400px;
-    height: 600px;
+    width: 100vw;
+    height: 100vh;
     background-color: #fffdf6;
-    border-radius: 10px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-    border: 1px solid #f0e6d2;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -36,6 +33,7 @@ body {
     justify-content: space-between;
     align-items: center;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    flex-shrink: 0;
 }
 
 .waiting-header {
@@ -132,15 +130,25 @@ body {
     padding: 20px;
     overflow-y: auto;
     background-color: #f8f5ec;
+    display: flex;
+    flex-direction: column;
 }
 
+/* Сообщения сдвинуты к стенкам и улучшено расположение времени */
 .message {
     margin-bottom: 15px;
-    max-width: 85%;
+    max-width: 80%;
+    display: flex;
 }
 
 .message.my-message {
+    align-self: flex-end;
     margin-left: auto;
+}
+
+.message.other-message {
+    align-self: flex-start;
+    margin-right: auto;
 }
 
 .message-content {
@@ -150,6 +158,7 @@ body {
     border: 1px solid #f0e6d2;
     display: inline-block;
     max-width: 100%;
+    position: relative;
 }
 
 .message.my-message .message-content {
@@ -168,14 +177,15 @@ body {
 
 .message-text {
     word-wrap: break-word;
-    margin-bottom: 5px;
+    margin-right: 45px; /* Место для времени */
 }
 
 .message-time {
     font-size: 0.7rem;
     opacity: 0.8;
-    text-align: right;
-    margin-top: 5px;
+    position: absolute;
+    bottom: 8px;
+    right: 12px;
 }
 
 .message.my-message .message-time {
@@ -184,6 +194,14 @@ body {
 
 .message.other-message .message-time {
     color: rgba(90, 90, 90, 0.7);
+}
+
+/* Для длинных сообщений - время под текстом */
+.message-content.long-message .message-time {
+    position: static;
+    text-align: right;
+    margin-top: 5px;
+    margin-right: 0;
 }
 
 .waiting-container {
@@ -255,6 +273,7 @@ body {
     border-top: 1px solid #e0d9c0;
     display: flex;
     gap: 10px;
+    flex-shrink: 0;
 }
 
 #messageInput {
