@@ -196,27 +196,62 @@ body {
     transform: translate(-50%, -50%);
     text-align: center;
     z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
 }
 
-.waiting-timer {
-    font-size: 3rem;
-    color: #2e7d32;
-    margin-bottom: 20px;
+.timer-circle {
+    position: relative;
+    width: 120px;
+    height: 120px;
+}
+
+.timer-svg {
+    transform: rotate(-90deg);
+}
+
+.timer-background {
+    opacity: 0.3;
+}
+
+.timer-progress {
+    transition: stroke-dashoffset 1s linear;
+    stroke-dasharray: 339.292; /* 2 * π * 54 */
+    stroke-dashoffset: 0;
+}
+
+.timer-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2rem;
     font-weight: bold;
+    color: #2e7d32;
 }
 
-.go-back-button {
-    padding: 10px 20px;
-    background-color: #2e7d32;
-    color: white;
-    border: none;
-    border-radius: 5px;
+.waiting-label {
+    color: #666;
+    font-size: 1rem;
+}
+
+.cancel-button {
+    padding: 12px 30px;
+    background-color: #f5f5f5;
+    color: #333;
+    border: 1px solid #ddd;
+    border-radius: 24px;
     cursor: pointer;
     font-family: 'Georgia', serif;
+    font-size: 1rem;
+    transition: all 0.3s;
 }
 
-.go-back-button:hover {
-    background-color: #388e3c;
+.cancel-button:hover {
+    background-color: #e0e0e0;
+    border-color: #ccc;
 }
 
 .input-container {
@@ -274,6 +309,11 @@ body {
     background-color: #f8f9f5;
     border-radius: 8px;
     border-left: 3px solid #2e7d32;
+}
+
+.connected-message {
+    background-color: #e8f5e8;
+    border-left-color: #4CAF50;
 }
 
 .session-ended-message {

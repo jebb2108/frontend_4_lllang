@@ -29,16 +29,24 @@
         </div>
 
         <div class="messages-container" id="messagesContainer">
-            <!-- Системное сообщение будет добавляться динамически -->
+            <!-- Сообщения будут добавляться динамически -->
         </div>
 
         <!-- Контейнер ожидания -->
         <div class="waiting-container" id="waitingContainer">
-            <div class="waiting-timer" id="waitingTimer">30</div>
-            <button class="go-back-button" onclick="goBack()">Go back</button>
+            <div class="timer-circle">
+                <svg class="timer-svg" width="120" height="120" viewBox="0 0 120 120">
+                    <circle class="timer-background" cx="60" cy="60" r="54" stroke="#e0e0e0" stroke-width="4" fill="none"></circle>
+                    <circle class="timer-progress" cx="60" cy="60" r="54" stroke="#2e7d32" stroke-width="4" fill="none"
+                            stroke-dasharray="339.292" stroke-dashoffset="0"></circle>
+                </svg>
+                <div class="timer-text" id="waitingTimer">30</div>
+            </div>
+            <div class="waiting-label">Waiting for partner...</div>
+            <button class="cancel-button" onclick="goBack()">Cancel</button>
         </div>
 
-        <div class="input-container">
+        <div class="input-container" style="display: none;">
             <input type="text" id="messageInput" placeholder="Enter your message...">
             <button id="sendButton" onclick="sendMessage()">Send</button>
         </div>
