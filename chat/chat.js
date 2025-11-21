@@ -15,6 +15,8 @@ let userInfoReceived = false;
 let pendingMessages = [];
 let sessionTimer;
 let websocket;
+let partnerConnected = false;
+let waitTimer;
 
 // Подключаемся к WebSocket серверу
 function connectWebSocket() {
@@ -23,6 +25,10 @@ function connectWebSocket() {
 
     websocket.onopen = function(event) {
         console.log('WebSocket connection established');
+        
+        // Показываем интерфейс ожидания
+        showWaitingInterface();
+        
         // Устанавливаем таймер блокировки чата через 15 минут
         sessionTimer = setTimeout(() => {
             endSession();
@@ -49,6 +55,53 @@ function connectWebSocket() {
     };
 }
 
+// Показать интерфейс ожидания
+function showWaitingInterface() {
+    const container = document.getElementById('messagesContainer');
+    container.innerHTML = `
+        <div class="system-message">
+            Chat started. Messages will disappear in 15 minutes
+        </div>
+    `;
+    
+    // Запускаем таймер ожидания
+    startWaitTimer();
+}
+
+// Запуск таймера ожидания
+function startWaitTimer() {
+    let timeLeft = 30;
+    const timerElement = document.getElementById('waitingTimer');
+    
+    waitTimer = setInterval(() => {
+        timeLeft--;
+        timerElement.textContent = timeLeft;
+        
+        if (timeLeft <= 0) {
+            clearInterval(waitTimer);
+            endSession('Waiting time expired');
+        }
+    }, 1000);
+}
+
+// Переключение на интерфейс чата
+function switchToChatInterface(partnerName) {
+    // Скрываем интерфейс ожидания
+    document.querySelector('.waiting-header').style.display = 'none';
+    document.getElementById('waitingContainer').style.display = 'none';
+    
+    // Показываем интерфейс чата
+    document.querySelector('.connected-header').style.display = 'flex';
+    document.getElementById('partnerNickname').textContent = partnerName || 'Partner';
+    
+    // Очищаем таймер ожидания
+    if (waitTimer) {
+        clearInterval(waitTimer);
+    }
+    
+    partnerConnected = true;
+}
+
 // Обработчик сообщений от сервера
 function handleWebSocketMessage(data) {
     switch(data.type) {
@@ -62,9 +115,15 @@ function handleWebSocketMessage(data) {
             
         case 'message_history':
             const container = document.getElementById('messagesContainer');
-            container.innerHTML = '';
-
+            
+            // Проверяем, есть ли сообщения от других пользователей
+            const hasOtherUsers = data.messages.some(msg => msg.sender !== userName);
+            if (hasOtherUsers && !partnerConnected) {
+                switchToChatInterface(data.messages.find(msg => msg.sender !== userName)?.sender);
+            }
+            
             if (userInfoReceived) {
+                container.innerHTML = '';
                 data.messages.forEach(msg => {
                     addMessageToChat(msg, msg.sender === userName);
                 });
@@ -74,6 +133,11 @@ function handleWebSocketMessage(data) {
             break;
             
         case 'new_message':
+            // Если это первое сообщение от другого пользователя, переключаем интерфейс
+            if (data.message.sender !== userName && !partnerConnected) {
+                switchToChatInterface(data.message.sender);
+            }
+            
             if (userInfoReceived) {
                 addMessageToChat(data.message, data.message.sender === userName);
             } else {
@@ -89,6 +153,13 @@ function handleWebSocketMessage(data) {
                 clearTimeout(sessionTimer);
             }
             break;
+            
+        case 'user_joined':
+            // Если другой пользователь присоединился, переключаем интерфейс
+            if (!partnerConnected) {
+                switchToChatInterface(data.username);
+            }
+            break;
     }
 }
 
@@ -97,6 +168,12 @@ function processPendingMessages() {
     const container = document.getElementById('messagesContainer');
     
     if (pendingMessages.length > 0) {
+        // Проверяем, есть ли сообщения от других пользователей
+        const hasOtherUsers = pendingMessages.some(msg => msg.sender !== userName);
+        if (hasOtherUsers && !partnerConnected) {
+            switchToChatInterface(pendingMessages.find(msg => msg.sender !== userName)?.sender);
+        }
+        
         container.innerHTML = '';
         
         pendingMessages.forEach(msg => {
@@ -108,14 +185,14 @@ function processPendingMessages() {
 }
 
 // Функция завершения сессии
-function endSession() {
+function endSession(reason) {
     document.getElementById('messageInput').disabled = true;
     document.getElementById('sendButton').disabled = true;
 
     const container = document.getElementById('messagesContainer');
     const sessionEndedMessage = document.createElement('div');
     sessionEndedMessage.className = 'session-ended-message';
-    sessionEndedMessage.textContent = 'Сессия завершена. Чат заблокирован.';
+    sessionEndedMessage.textContent = reason || 'Сессия завершена. Чат заблокирован.';
     container.appendChild(sessionEndedMessage);
     container.scrollTop = container.scrollHeight;
 }
@@ -129,7 +206,7 @@ function addMessageToChat(messageData, isMyMessage = false) {
     let messageTime;
     const date = new Date(messageData.created_at);
     
-    if (isNaN(date.getTime())) { // Проверка на Invalid Date
+    if (isNaN(date.getTime())) {
         console.error("Invalid date:", messageData.created_at);
         messageTime = "только что";
     } else {
@@ -140,9 +217,9 @@ function addMessageToChat(messageData, isMyMessage = false) {
     }
 
     messageDiv.innerHTML = `
-        <div class="message-content">${messageData.text}</div>
-        <div class="message-info">
-            ${isMyMessage ? 'Вы' : messageData.sender} • ${messageTime}
+        <div class="message-content">
+            <div class="message-text">${messageData.text}</div>
+            <div class="message-time">${messageTime}</div>
         </div>
     `;
 
@@ -157,12 +234,31 @@ function sendMessage() {
     const message = messageInput.value.trim();
 
     if (message && websocket && websocket.readyState === WebSocket.OPEN) {
-        // Отправляем сообщение как объект с полем text (аналогично socket.emit('send_message', message))
         const messageData = {
             text: message
         };
         websocket.send(JSON.stringify(messageData));
         messageInput.value = '';
+    }
+}
+
+// Функции для меню
+function handleReport() {
+    alert('Report function will be implemented');
+    // Закрываем меню
+    document.querySelector('.dropdown-menu').classList.remove('show');
+}
+
+function handleExit() {
+    if (confirm('Are you sure you want to exit the chat?')) {
+        window.close();
+    }
+    document.querySelector('.dropdown-menu').classList.remove('show');
+}
+
+function goBack() {
+    if (confirm('Are you sure you want to go back?')) {
+        window.history.back();
     }
 }
 
@@ -176,7 +272,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const sendButton = document.getElementById('sendButton');
     
     if (messageInput) {
-        // Отправка сообщения при нажатии Enter
         messageInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 sendMessage();
@@ -185,9 +280,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     if (sendButton) {
-        // Отправка сообщения при клике на кнопку
         sendButton.addEventListener('click', sendMessage);
     }
+    
+    // Обработчик для выпадающего меню
+    document.querySelector('.menu-dots').addEventListener('click', function(e) {
+        e.stopPropagation();
+        document.querySelector('.dropdown-menu').classList.toggle('show');
+    });
+    
+    // Закрытие меню при клике вне его
+    document.addEventListener('click', function() {
+        document.querySelector('.dropdown-menu').classList.remove('show');
+    });
     
     console.log('Chat initialized');
 });

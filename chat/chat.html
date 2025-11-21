@@ -8,14 +8,34 @@
 </head>
 <body>
     <div class="chat-container">
-        <div class="chat-header">
-            <h2>Messanger</h2>
+        <!-- Заголовок для режима ожидания -->
+        <div class="chat-header waiting-header">
+            <h2>Messenger</h2>
+        </div>
+
+        <!-- Заголовок для режима чата (скрыт по умолчанию) -->
+        <div class="chat-header connected-header" style="display: none;">
+            <div class="user-info">
+                <span class="user-nickname" id="partnerNickname">User</span>
+                <span class="user-status online"></span>
+            </div>
+            <div class="header-menu">
+                <button class="menu-dots">⋯</button>
+                <div class="dropdown-menu">
+                    <button class="menu-item" onclick="handleReport()">Report</button>
+                    <button class="menu-item" onclick="handleExit()">Exit</button>
+                </div>
+            </div>
         </div>
 
         <div class="messages-container" id="messagesContainer">
-            <div class="system-message">
-                Chat started. Messages will disappear in 15 minutes
-            </div>
+            <!-- Системное сообщение будет добавляться динамически -->
+        </div>
+
+        <!-- Контейнер ожидания -->
+        <div class="waiting-container" id="waitingContainer">
+            <div class="waiting-timer" id="waitingTimer">30</div>
+            <button class="go-back-button" onclick="goBack()">Go back</button>
         </div>
 
         <div class="input-container">
