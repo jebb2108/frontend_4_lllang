@@ -205,7 +205,7 @@ function startStatusChecking() {
     
     statusCheckInterval = setInterval(async () => {
         await checkUserStatus();
-    }, 3000);
+    }, 1000);
 }
 
 // Функция проверки статуса пользователя
@@ -214,29 +214,36 @@ async function checkUserStatus() {
         const userId = await getUserId();
         if (!userId) return;
         
-        const response = await fetch(`${API_WORKER_URL}/queue/${userId}/status`);
-        if (response.ok) {
-            const data = await response.json();
+        // Параллельно проверяем статус в очереди И наличие матча
+        const [queueResponse, matchResponse] = await Promise.all([
+            fetch(`${API_WORKER_URL}/queue/${userId}/status`),
+            fetch(`${API_WORKER_URL}/check_match?user_id=${encodeURIComponent(userId)}`)
+        ]);
+        
+        if (queueResponse.ok) {
+            const queueData = await queueResponse.json();
             const wasInQueue = userInQueue;
-            userInQueue = data.in_queue;
+            userInQueue = queueData.in_queue;
             
-            // Обновляем статус в любом случае
             updateUserStatus();
             
-            // Если состояние изменилось с не в очереди на в очереди
             if (!wasInQueue && userInQueue) {
                 startSearchMessages();
-            }
-            // Если состояние изменилось с в очереди на не в очереди
-            else if (wasInQueue && !userInQueue) {
+            } else if (wasInQueue && !userInQueue) {
                 stopSearchMessages();
             }
-            
-            // Если пользователь вышел из очереди, проверяем не нашли ли матч
-            if (!userInQueue && !matchFound) {
-                await checkMatchFound();
+        }
+        
+        // ВСЕГДА проверяем матч, независимо от статуса очереди
+        if (matchResponse.ok && !matchFound) {
+            const matchData = await matchResponse.json();
+            if (matchData.match_id) {
+                matchFound = true;
+                userInQueue = false;
+                showMatchFound(matchData.room_id, userId);
             }
         }
+        
     } catch (error) {
         console.error('Error checking user status:', error);
     }
