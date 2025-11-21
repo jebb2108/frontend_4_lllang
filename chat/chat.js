@@ -1,7 +1,12 @@
-// Получаем room_id из URL
-const pathParts = window.location.pathname.split('/');
-const roomId = pathParts[pathParts.length - 1];
-const token = new URLSearchParams(window.location.search).get('token');
+// Получаем room_id и token из URL параметров
+const urlParams = new URLSearchParams(window.location.search);
+const roomId = urlParams.get('room_id');
+const token = urlParams.get('token');
+
+if (!roomId || !token) {
+    console.error('Room ID or Token missing');
+    // Можно показать сообщение об ошибке или перенаправить
+}
 
 // Переменные для хранения состояния
 let userName = '';

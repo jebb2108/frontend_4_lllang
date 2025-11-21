@@ -347,7 +347,7 @@ async function checkMatchFound() {
             if (data.match_id) {
                 matchFound = true;
                 userInQueue = false;
-                showMatchFound(data.match_id);
+                showMatchFound(data.room_id, userId);
             }
         }
     } catch (error) {
@@ -356,13 +356,23 @@ async function checkMatchFound() {
 }
 
 // Показать найденный матч
-function showMatchFound(matchId) {
+async function showMatchFound(roomId, userId) {
     roomElements.roomImage.src = 'media/door.jpeg';
     roomElements.userStatus.textContent = 'Собеседник найден! Нажми чтобы начать общение';
     
     // Заменяем обработчик на переход в чат
-    roomElements.roomImage.onclick = function() {
-        window.location.href = `/chat/${matchId}`;
+    roomElements.roomImage.onclick = async function() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/create_token?user_id=${userId}&room_id=${roomId}`);
+            if (response.ok) {
+                const data = await response.json();
+                window.location.href = `/enter/chat?room_id=${roomId}&token=${data.token}`;
+            } else {
+                console.error("Failed to create token")
+            }
+        } catch (error) {
+            console.error('Error creating token:', error);
+        }
     };
     
     stopSearchMessages();
