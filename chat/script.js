@@ -341,7 +341,7 @@ async function checkMatchFound() {
         const userId = await getUserId();
         if (!userId) return;
         
-        const response = await fetch(`${API_WORKER_URL}/match_found?user_id=${encodeURIComponent(userId)}`);
+        const response = await fetch(`${API_WORKER_URL}/check_match?user_id=${encodeURIComponent(userId)}`);
         if (response.ok) {
             const data = await response.json();
             if (data.match_id) {
