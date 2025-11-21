@@ -1,19 +1,44 @@
 const API_WS_URL = 'wss://chat.lllang.site';
 const WORKER_API_URL = 'https://chat.lllang.site/api/worker'
 
-// Получаем room_id и token из URL параметров
-const urlParams = new URLSearchParams(window.location.search);
-const matchId = urlParams.get('match_id');
-const roomId = urlParams.get('room_id');
-const token = urlParams.get('token');
+// Функция для надежного получения параметров URL
+function getUrlParams() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const params = {
+        matchId: urlParams.get('match_id'),
+        roomId: urlParams.get('room_id'),
+        token: urlParams.get('token')
+    };
+    
+    console.log('URL Parameters:', params);
+    return params;
+}
 
-// Сохраняем matchId в глобальной переменной для надежности
-let globalMatchId = matchId;
+// Получаем параметры URL
+const urlParams = getUrlParams();
+const { matchId, roomId, token } = urlParams;
 
-console.log('URL Parameters:', { matchId, roomId, token });
-console.log('Global Match ID:', globalMatchId);
+// Сохраняем параметры в sessionStorage для надежности
+if (matchId) sessionStorage.setItem('matchId', matchId);
+if (roomId) sessionStorage.setItem('roomId', roomId);
+if (token) sessionStorage.setItem('token', token);
 
-if (!roomId || !token) {
+// Функция для надежного получения matchId
+function getMatchId() {
+    return matchId || sessionStorage.getItem('matchId');
+}
+
+// Функция для надежного получения roomId
+function getRoomId() {
+    return roomId || sessionStorage.getItem('roomId');
+}
+
+// Функция для надежного получения token
+function getToken() {
+    return token || sessionStorage.getItem('token');
+}
+
+if (!getRoomId() || !getToken()) {
     console.error('Room ID or Token missing');
 }
 
@@ -27,7 +52,15 @@ let partnerDiscovered = false;
 
 // Подключаемся к WebSocket серверу
 function connectWebSocket() {
-    const wsUrl = `${API_WS_URL}/ws/chat?room_id=${roomId}&token=${token}`;
+    const currentRoomId = getRoomId();
+    const currentToken = getToken();
+    
+    if (!currentRoomId || !currentToken) {
+        console.error('Cannot connect: Room ID or Token missing');
+        return;
+    }
+    
+    const wsUrl = `${API_WS_URL}/ws/chat?room_id=${currentRoomId}&token=${currentToken}`;
     websocket = new WebSocket(wsUrl);
 
     websocket.onopen = function() {
@@ -310,21 +343,22 @@ function handleReport() {
 }
 
 async function handleExit() {
-    console.log('Exit clicked, matchId:', globalMatchId);
+    const currentMatchId = getMatchId();
+    console.log('Exit clicked, matchId:', currentMatchId);
+    
+    if (!currentMatchId) {
+        alert('Error: Match ID not found. Cannot exit chat.');
+        return;
+    }
     
     if (confirm('Are you sure you want to exit the chat?')) {
         try {
-            // Используем глобальную переменную для надежности
-            const currentMatchId = globalMatchId || matchId;
-            console.log('Using matchId for exit:', currentMatchId);
-            
-            if (!currentMatchId) {
-                alert('Error: Match ID not found');
-                return;
-            }
-            
             const response = await fetch(`${WORKER_API_URL}/cancel_match?match_id=${currentMatchId}&is_aborted=false`);
             if (response.ok) {
+                // Очищаем sessionStorage перед выходом
+                sessionStorage.removeItem('matchId');
+                sessionStorage.removeItem('roomId');
+                sessionStorage.removeItem('token');
                 window.history.back();
             } else {
                 console.error('Failed to cancel match:', response.status);
@@ -339,21 +373,22 @@ async function handleExit() {
 }
 
 async function goBack() {
-    console.log('Go back clicked, matchId:', globalMatchId);
+    const currentMatchId = getMatchId();
+    console.log('Go back clicked, matchId:', currentMatchId);
+    
+    if (!currentMatchId) {
+        alert('Error: Match ID not found. Cannot leave.');
+        return;
+    }
     
     if (confirm('Are you sure you want to leave?')) {
         try {
-            // Используем глобальную переменную для надежности
-            const currentMatchId = globalMatchId || matchId;
-            console.log('Using matchId for go back:', currentMatchId);
-            
-            if (!currentMatchId) {
-                alert('Error: Match ID not found');
-                return;
-            }
-            
             const response = await fetch(`${WORKER_API_URL}/cancel_match?match_id=${currentMatchId}&is_aborted=true`);
             if (response.ok) {
+                // Очищаем sessionStorage перед выходом
+                sessionStorage.removeItem('matchId');
+                sessionStorage.removeItem('roomId');
+                sessionStorage.removeItem('token');
                 window.history.back();
             } else {
                 console.error('Failed to cancel match:', response.status);
@@ -368,7 +403,7 @@ async function goBack() {
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded, matchId:', globalMatchId);
+    console.log('DOM loaded, matchId:', getMatchId());
     
     connectWebSocket();
     
