@@ -17,6 +17,7 @@ let websocket;
 let partnerConnected = false;
 let timerInterval;
 let partnerNickname = null;
+let partnerDiscovered = false;
 
 // Подключаемся к WebSocket серверу
 function connectWebSocket() {
@@ -44,7 +45,11 @@ function connectWebSocket() {
 
     websocket.onclose = function() {
         console.log('WebSocket connection closed');
-        setTimeout(connectWebSocket, 3000);
+        // Не переподключаемся автоматически, так как это может мешать
+    };
+
+    websocket.onerror = function(error) {
+        console.error('WebSocket error:', error);
     };
 }
 
@@ -54,6 +59,11 @@ function setPartnerNickname(nickname) {
         partnerNickname = nickname;
         document.getElementById('partnerNickname').textContent = nickname;
         console.log('Partner nickname set to:', nickname);
+        
+        // Если партнер подключился, но интерфейс еще не переключен
+        if (!partnerConnected) {
+            switchToChatInterface();
+        }
         return true;
     }
     return false;
@@ -71,6 +81,11 @@ function startWaitTimer() {
     const timerElement = document.getElementById('waitingTimer');
     const progressCircle = document.querySelector('.timer-progress');
     const circumference = 2 * Math.PI * 54;
+    
+    // Сбросим предыдущий интервал, если он существует
+    if (timerInterval) {
+        clearInterval(timerInterval);
+    }
     
     const updateProgress = () => {
         const offset = circumference - (timeLeft / 30) * circumference;
@@ -97,6 +112,11 @@ function updatePartnerStatus(isOnline) {
     if (partnerStatusElement) {
         partnerStatusElement.className = isOnline ? 'status-indicator online' : 'status-indicator offline';
     }
+    
+    // Если партнер онлайн, но ник еще не установлен, используем "Partner"
+    if (isOnline && !partnerNickname && !partnerConnected) {
+        switchToChatInterface();
+    }
 }
 
 // Переключение на интерфейс чата
@@ -120,9 +140,13 @@ function switchToChatInterface() {
     // Очищаем таймер ожидания
     if (timerInterval) {
         clearInterval(timerInterval);
+        timerInterval = null;
     }
     
     partnerConnected = true;
+    partnerDiscovered = true;
+    
+    console.log('Switched to chat interface');
 }
 
 // Обработчик сообщений от сервера
@@ -132,6 +156,7 @@ function handleWebSocketMessage(data) {
     switch(data.type) {
         case 'user_info':
             userName = data.username;
+            console.log('User identified as:', userName);
             break;
             
         case 'message_history':
@@ -140,23 +165,30 @@ function handleWebSocketMessage(data) {
                 addMessageToChat(msg, msg.sender === userName);
                 
                 // Если есть сообщения от других пользователей, устанавливаем ник партнера
-                if (msg.sender !== userName && !partnerNickname) {
-                    if (setPartnerNickname(msg.sender)) {
-                        switchToChatInterface();
-                    }
+                if (msg.sender !== userName && !partnerDiscovered) {
+                    setPartnerNickname(msg.sender);
                 }
             });
+            
+            // Проверяем, есть ли сообщения от партнера в истории
+            const hasPartnerMessages = data.messages.some(msg => msg.sender !== userName);
+            if (hasPartnerMessages && !partnerConnected) {
+                switchToChatInterface();
+            }
             break;
             
         case 'new_message':
             // Устанавливаем ник отправителя как партнера
-            if (data.message.sender !== userName && !partnerNickname) {
-                if (setPartnerNickname(data.message.sender)) {
-                    switchToChatInterface();
-                }
+            if (data.message.sender !== userName && !partnerDiscovered) {
+                setPartnerNickname(data.message.sender);
             }
             
             addMessageToChat(data.message, data.message.sender === userName);
+            
+            // Если это сообщение от партнера и мы еще не в режиме чата
+            if (data.message.sender !== userName && !partnerConnected) {
+                switchToChatInterface();
+            }
             break;
             
         case 'partner_status':
@@ -166,10 +198,8 @@ function handleWebSocketMessage(data) {
         case 'user_status':
             if (data.username !== userName) {
                 // Устанавливаем ник партнера при изменении статуса
-                if (!partnerNickname && data.is_online) {
-                    if (setPartnerNickname(data.username)) {
-                        switchToChatInterface();
-                    }
+                if (!partnerDiscovered) {
+                    setPartnerNickname(data.username);
                 }
                 updatePartnerStatus(data.is_online);
             }
@@ -178,10 +208,8 @@ function handleWebSocketMessage(data) {
         case 'online_users':
             // Устанавливаем ник первого онлайн пользователя как партнера
             const otherUsers = data.users.filter(user => user !== userName);
-            if (otherUsers.length > 0 && !partnerNickname) {
-                if (setPartnerNickname(otherUsers[0])) {
-                    switchToChatInterface();
-                }
+            if (otherUsers.length > 0 && !partnerDiscovered) {
+                setPartnerNickname(otherUsers[0]);
             }
             break;
     }
@@ -189,6 +217,12 @@ function handleWebSocketMessage(data) {
 
 // Функция завершения сессии
 function endSession(reason) {
+    console.log('Ending session:', reason);
+    
+    if (websocket) {
+        websocket.close();
+    }
+    
     document.getElementById('messageInput').disabled = true;
     document.getElementById('sendButton').disabled = true;
 
@@ -197,6 +231,12 @@ function endSession(reason) {
     sessionEndedMessage.className = 'session-ended-message';
     sessionEndedMessage.textContent = reason || 'Session ended. Chat is locked.';
     container.appendChild(sessionEndedMessage);
+    
+    // Останавливаем таймер
+    if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+    }
 }
 
 // Функция добавления сообщения в чат
@@ -270,7 +310,7 @@ function handleExit() {
 async function goBack() {
     if (confirm('Are you sure you want to leave?')) {
         try { 
-            const response = await fetch(`${WORKER_API_URL}/cancel_match?match_id=${matchId}&is_aborted=false`)
+            const response = await fetch(`${WORKER_API_URL}/cancel_match?match_id=${matchId}`)
             if (response.ok) {
                 window.history.back();
             }
