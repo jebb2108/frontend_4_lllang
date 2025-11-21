@@ -14,7 +14,6 @@ body {
     color: #5a5a5a;
 }
 
-/* Растянуть на весь экран */
 .chat-container {
     width: 100vw;
     height: 100vh;
@@ -134,7 +133,6 @@ body {
     flex-direction: column;
 }
 
-/* Сообщения */
 .message {
     margin-bottom: 15px;
     max-width: 70%;
@@ -159,7 +157,9 @@ body {
     display: inline-block;
     max-width: 100%;
     position: relative;
-    min-height: auto; /* Убираем минимальную высоту */
+    min-height: auto;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .message.my-message .message-content {
@@ -176,10 +176,15 @@ body {
     border: 1px solid #e0d9c0;
 }
 
+
 .message-text {
     word-wrap: break-word;
-    margin-right: 45px; /* Место для времени */
-    line-height: 1.4; /* Нормальный межстрочный интервал */
+    overflow-wrap: break-word;
+    word-break: break-word;
+    line-height: 1.4;
+    margin-right: 0;
+    white-space: normal;
+    max-width: 100%;
 }
 
 .message-time {
@@ -204,18 +209,34 @@ body {
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
-    padding-right: 14px; /* Убираем лишний отступ */
+    padding-right: 14px;
 }
 
 .message-content.short-message .message-text {
     margin-right: 8px;
     flex: 1;
+    /* Для коротких сообщений ограничиваем ширину текста */
+    max-width: calc(100% - 40px);
 }
 
 .message-content.short-message .message-time {
     position: static;
     margin-left: 8px;
     flex-shrink: 0;
+}
+
+/* Для длинных сообщений - время под текстом */
+.message-content:not(.short-message) .message-text {
+    /* Добавляем отступ снизу для времени */
+    padding-bottom: 16px;
+    /* Убираем ограничение по ширине для длинных сообщений */
+    max-width: 100%;
+}
+
+.message-content:not(.short-message) .message-time {
+    position: static;
+    text-align: right;
+    margin-top: 4px;
 }
 
 .waiting-container {
