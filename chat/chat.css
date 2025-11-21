@@ -183,7 +183,6 @@ body {
     line-height: 1.4;
     white-space: normal;
     max-width: 100%;
-    /* Убираем лишние отступы */
     margin: 0;
     padding: 0;
 }
@@ -195,7 +194,6 @@ body {
     position: absolute;
     bottom: 8px;
     right: 12px;
-    /* Убираем лишние отступы */
     margin: 0;
     padding: 0;
 }
@@ -211,7 +209,7 @@ body {
 /* Для коротких сообщений - время в одной строке с текстом */
 .message-content.short-message {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: space-between;
     padding-right: 14px;
 }
@@ -219,18 +217,23 @@ body {
 .message-content.short-message .message-text {
     margin-right: 8px;
     flex: 1;
-    max-width: calc(100% - 40px);
+    max-width: none;
+    /* Убираем абсолютное позиционирование для текста в коротких сообщениях */
+    position: static;
 }
 
 .message-content.short-message .message-time {
     position: static;
     margin-left: 8px;
     flex-shrink: 0;
+    /* Убираем абсолютное позиционирование для времени в коротких сообщениях */
+    bottom: auto;
+    right: auto;
 }
 
-/* Для длинных сообщений - время под текстом, но без лишнего отступа */
+/* Для длинных сообщений - время под текстом */
 .message-content:not(.short-message) .message-text {
-    /* Добавляем минимальный отступ только если нужно */
+    /* Добавляем небольшой отступ снизу для времени */
     margin-bottom: 2px;
 }
 
@@ -238,8 +241,7 @@ body {
     position: static;
     text-align: right;
     margin-top: 2px;
-    /* Убираем абсолютное позиционирование для длинных сообщений */
-    position: relative;
+    /* Убираем абсолютное позиционирование для времени в длинных сообщениях */
     bottom: auto;
     right: auto;
 }
