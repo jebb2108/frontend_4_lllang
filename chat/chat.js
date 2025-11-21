@@ -7,6 +7,12 @@ const matchId = urlParams.get('match_id');
 const roomId = urlParams.get('room_id');
 const token = urlParams.get('token');
 
+// Сохраняем matchId в глобальной переменной для надежности
+let globalMatchId = matchId;
+
+console.log('URL Parameters:', { matchId, roomId, token });
+console.log('Global Match ID:', globalMatchId);
+
 if (!roomId || !token) {
     console.error('Room ID or Token missing');
 }
@@ -304,33 +310,66 @@ function handleReport() {
 }
 
 async function handleExit() {
+    console.log('Exit clicked, matchId:', globalMatchId);
+    
     if (confirm('Are you sure you want to exit the chat?')) {
-        try { 
-            const response = await fetch(`${WORKER_API_URL}/cancel_match?match_id=${matchId}&is_aborted=${false}`)
+        try {
+            // Используем глобальную переменную для надежности
+            const currentMatchId = globalMatchId || matchId;
+            console.log('Using matchId for exit:', currentMatchId);
+            
+            if (!currentMatchId) {
+                alert('Error: Match ID not found');
+                return;
+            }
+            
+            const response = await fetch(`${WORKER_API_URL}/cancel_match?match_id=${currentMatchId}&is_aborted=false`);
             if (response.ok) {
                 window.history.back();
+            } else {
+                console.error('Failed to cancel match:', response.status);
+                alert('Failed to exit chat. Please try again.');
             }
         } catch (error) {
-            console.error('Error going back to queue:', error);
+            console.error('Error exiting chat:', error);
+            alert('Error exiting chat. Please try again.');
         }
     }
+    document.querySelector('.dropdown-menu').classList.remove('show');
 }
 
 async function goBack() {
+    console.log('Go back clicked, matchId:', globalMatchId);
+    
     if (confirm('Are you sure you want to leave?')) {
-        try { 
-            const response = await fetch(`${WORKER_API_URL}/cancel_match?match_id=${matchId}$is_aborted=${true}`)
+        try {
+            // Используем глобальную переменную для надежности
+            const currentMatchId = globalMatchId || matchId;
+            console.log('Using matchId for go back:', currentMatchId);
+            
+            if (!currentMatchId) {
+                alert('Error: Match ID not found');
+                return;
+            }
+            
+            const response = await fetch(`${WORKER_API_URL}/cancel_match?match_id=${currentMatchId}&is_aborted=true`);
             if (response.ok) {
                 window.history.back();
+            } else {
+                console.error('Failed to cancel match:', response.status);
+                alert('Failed to leave. Please try again.');
             }
         } catch (error) {
             console.error('Error going back to queue:', error);
+            alert('Error leaving. Please try again.');
         }
     }
 }
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, matchId:', globalMatchId);
+    
     connectWebSocket();
     
     const messageInput = document.getElementById('messageInput');
@@ -358,7 +397,6 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('exitButton').addEventListener('click', function(e) {
         e.stopPropagation();
         handleExit();
-        document.querySelector('.dropdown-menu').classList.remove('show');
     });
     
     document.addEventListener('click', function() {
