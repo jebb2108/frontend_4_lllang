@@ -17,7 +17,6 @@ let websocket;
 let partnerConnected = false;
 let timerInterval;
 let partnerNickname = null;
-let partnerDiscovered = false;
 
 // Подключаемся к WebSocket серверу
 function connectWebSocket() {
@@ -51,12 +50,13 @@ function connectWebSocket() {
 
 // Функция для установки ника партнера
 function setPartnerNickname(nickname) {
-    if (nickname && nickname !== userName && !partnerDiscovered) {
+    if (nickname && nickname !== userName) {
         partnerNickname = nickname;
-        partnerDiscovered = true;
         document.getElementById('partnerNickname').textContent = nickname;
         console.log('Partner nickname set to:', nickname);
+        return true;
     }
+    return false;
 }
 
 // Показать интерфейс ожидания
@@ -100,7 +100,7 @@ function updatePartnerStatus(isOnline) {
 }
 
 // Переключение на интерфейс чата
-function switchToChatInterface(partnerName) {
+function switchToChatInterface() {
     // Скрываем интерфейс ожидания
     document.querySelector('.waiting-header').style.display = 'none';
     document.getElementById('waitingContainer').style.display = 'none';
@@ -109,10 +109,8 @@ function switchToChatInterface(partnerName) {
     document.querySelector('.connected-header').style.display = 'flex';
     document.querySelector('.input-container').style.display = 'flex';
     
-    // Обновляем имя партнера (гарантированно)
-    if (partnerName) {
-        document.getElementById('partnerNickname').textContent = partnerName;
-    } else if (partnerNickname) {
+    // Обновляем имя партнера
+    if (partnerNickname) {
         document.getElementById('partnerNickname').textContent = partnerNickname;
     }
     
@@ -137,26 +135,24 @@ function handleWebSocketMessage(data) {
             break;
             
         case 'message_history':
-            // Если есть сообщения от других пользователей, переключаем интерфейс
-            const otherMessages = data.messages.filter(msg => msg.sender !== userName);
-            if (otherMessages.length > 0 && !partnerConnected) {
-                // Берем ник из первого сообщения другого пользователя
-                setPartnerNickname(otherMessages[0].sender);
-                switchToChatInterface(partnerNickname);
-            }
-            
             // Отображаем историю сообщений
             data.messages.forEach(msg => {
                 addMessageToChat(msg, msg.sender === userName);
+                
+                // Если есть сообщения от других пользователей, устанавливаем ник партнера
+                if (msg.sender !== userName && !partnerNickname) {
+                    if (setPartnerNickname(msg.sender)) {
+                        switchToChatInterface();
+                    }
+                }
             });
             break;
             
         case 'new_message':
             // Устанавливаем ник отправителя как партнера
-            if (data.message.sender !== userName) {
-                setPartnerNickname(data.message.sender);
-                if (!partnerConnected) {
-                    switchToChatInterface(partnerNickname);
+            if (data.message.sender !== userName && !partnerNickname) {
+                if (setPartnerNickname(data.message.sender)) {
+                    switchToChatInterface();
                 }
             }
             
@@ -165,28 +161,26 @@ function handleWebSocketMessage(data) {
             
         case 'partner_status':
             updatePartnerStatus(data.is_online);
-            if (data.is_online && !partnerConnected) {
-                switchToChatInterface(partnerNickname || 'Partner');
-            }
             break;
 
         case 'user_status':
             if (data.username !== userName) {
-                setPartnerNickname(data.username);
-                updatePartnerStatus(data.is_online);
-                if (data.is_online && !partnerConnected) {
-                    switchToChatInterface(partnerNickname);
+                // Устанавливаем ник партнера при изменении статуса
+                if (!partnerNickname && data.is_online) {
+                    if (setPartnerNickname(data.username)) {
+                        switchToChatInterface();
+                    }
                 }
+                updatePartnerStatus(data.is_online);
             }
             break;
 
         case 'online_users':
+            // Устанавливаем ник первого онлайн пользователя как партнера
             const otherUsers = data.users.filter(user => user !== userName);
-            if (otherUsers.length > 0) {
-                // Берем первого онлайн пользователя как партнера
-                setPartnerNickname(otherUsers[0]);
-                if (!partnerConnected) {
-                    switchToChatInterface(partnerNickname);
+            if (otherUsers.length > 0 && !partnerNickname) {
+                if (setPartnerNickname(otherUsers[0])) {
+                    switchToChatInterface();
                 }
             }
             break;
@@ -240,9 +234,9 @@ function addMessageToChat(messageData, isMyMessage = false) {
 
     // Определяем, короткое ли сообщение (примерно одна строка)
     setTimeout(() => {
-        const textHeight = messageText.offsetHeight;
-        const lineHeight = parseInt(getComputedStyle(messageText).lineHeight);
-        const isShortMessage = textHeight <= lineHeight * 1.5;
+        const textWidth = messageText.scrollWidth;
+        const containerWidth = messageContent.offsetWidth;
+        const isShortMessage = textWidth <= (containerWidth - 50); // Учитываем место для времени
         
         if (isShortMessage) {
             messageContent.classList.add('short-message');
@@ -276,7 +270,7 @@ function handleExit() {
 async function goBack() {
     if (confirm('Are you sure you want to leave?')) {
         try { 
-            const response = await fetch(`${WORKER_API_URL}/cancel_match?match_id=${matchId}`)
+            const response = await fetch(`${WORKER_API_URL}/cancel_match?match_id=${matchId}&is_aborted=false`)
             if (response.ok) {
                 window.history.back();
             }

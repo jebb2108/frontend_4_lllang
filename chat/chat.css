@@ -134,143 +134,6 @@ body {
     flex-direction: column;
 }
 
-/* Сообщения сдвинуты к стенкам и улучшено расположение времени */
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-body {
-    font-family: 'Georgia', serif;
-    background-color: #fef9e7;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: #5a5a5a;
-}
-
-/* Растянуть на весь экран */
-.chat-container {
-    width: 100vw;
-    height: 100vh;
-    background-color: #fffdf6;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    position: relative;
-}
-
-.chat-header {
-    padding: 20px;
-    background-color: #2e7d32;
-    color: white;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    flex-shrink: 0;
-}
-
-.waiting-header {
-    justify-content: center;
-}
-
-.waiting-header h2 {
-    font-weight: 700;
-    font-size: 1.4rem;
-}
-
-.connected-header {
-    display: none;
-}
-
-.partner-info {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.partner-nickname {
-    font-weight: 600;
-    font-size: 1.1rem;
-}
-
-.status-indicator {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-}
-
-.status-indicator.online {
-    background-color: #4CAF50;
-}
-
-.status-indicator.offline {
-    background-color: #9E9E9E;
-}
-
-.header-menu {
-    position: relative;
-}
-
-.menu-dots {
-    background: none;
-    border: none;
-    color: white;
-    font-size: 1.5rem;
-    cursor: pointer;
-    padding: 5px;
-    border-radius: 3px;
-}
-
-.menu-dots:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-.dropdown-menu {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    background-color: white;
-    border-radius: 5px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-    display: none;
-    z-index: 1000;
-    min-width: 120px;
-}
-
-.dropdown-menu.show {
-    display: block;
-}
-
-.menu-item {
-    display: block;
-    width: 100%;
-    padding: 10px 15px;
-    border: none;
-    background: none;
-    text-align: left;
-    cursor: pointer;
-    font-family: 'Georgia', serif;
-    font-size: 0.9rem;
-    color: #5a5a5a;
-}
-
-.menu-item:hover {
-    background-color: #f5f5f5;
-}
-
-.messages-container {
-    flex: 1;
-    padding: 20px;
-    overflow-y: auto;
-    background-color: #f8f5ec;
-    display: flex;
-    flex-direction: column;
-}
-
 /* Сообщения */
 .message {
     margin-bottom: 15px;
@@ -293,13 +156,10 @@ body {
     border-radius: 18px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     border: 1px solid #f0e6d2;
-    display: inline-flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: flex-end;
+    display: inline-block;
     max-width: 100%;
-    gap: 8px;
     position: relative;
+    min-height: auto; /* Убираем минимальную высоту */
 }
 
 .message.my-message .message-content {
@@ -317,9 +177,9 @@ body {
 }
 
 .message-text {
-    flex: 1 1 auto;
     word-wrap: break-word;
-    max-width: calc(100% - 40px);
+    margin-right: 45px; /* Место для времени */
+    line-height: 1.4; /* Нормальный межстрочный интервал */
 }
 
 .message-time {
@@ -341,20 +201,21 @@ body {
 
 /* Для коротких сообщений - время в одной строке с текстом */
 .message-content.short-message {
-    padding-right: 50px;
-    display: inline-flex;
-    align-items: center;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding-right: 14px; /* Убираем лишний отступ */
+}
+
+.message-content.short-message .message-text {
+    margin-right: 8px;
+    flex: 1;
 }
 
 .message-content.short-message .message-time {
     position: static;
     margin-left: 8px;
     flex-shrink: 0;
-}
-
-.message-content.short-message .message-text {
-    max-width: none;
-    flex: 1;
 }
 
 .waiting-container {
