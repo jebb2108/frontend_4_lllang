@@ -256,11 +256,11 @@ function addMessageToChat(messageData, isMyMessage = false) {
     const messageContent = document.createElement('div');
     messageContent.className = 'message-content';
     
-    const messageText = document.createElement('span');
+    const messageText = document.createElement('div');
     messageText.className = 'message-text';
     messageText.textContent = messageData.text;
 
-    const messageTimeElement = document.createElement('span');
+    const messageTimeElement = document.createElement('div');
     messageTimeElement.className = 'message-time';
     messageTimeElement.textContent = messageTime;
 
@@ -270,6 +270,20 @@ function addMessageToChat(messageData, isMyMessage = false) {
 
     container.appendChild(messageDiv);
     container.scrollTop = container.scrollHeight;
+
+    // Определяем, короткое ли сообщение (одна строка)
+    setTimeout(() => {
+        const textHeight = messageText.offsetHeight;
+        const lineHeight = parseFloat(getComputedStyle(messageText).lineHeight);
+        // Считаем, что если высота текста не более 1.5 lineHeight, то это одна строка
+        const isShortMessage = textHeight <= lineHeight * 1.5;
+        
+        if (isShortMessage) {
+            messageContent.classList.add('short-message');
+        } else {
+            messageContent.classList.remove('short-message');
+        }
+    }, 0);
 }
 
 // Функция отправки сообщения
