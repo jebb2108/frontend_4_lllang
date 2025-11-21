@@ -45,7 +45,6 @@ function connectWebSocket() {
 
     websocket.onclose = function() {
         console.log('WebSocket connection closed');
-        // Не переподключаемся автоматически, так как это может мешать
     };
 
     websocket.onerror = function(error) {
@@ -257,11 +256,11 @@ function addMessageToChat(messageData, isMyMessage = false) {
     const messageContent = document.createElement('div');
     messageContent.className = 'message-content';
     
-    const messageText = document.createElement('div');
+    const messageText = document.createElement('span');
     messageText.className = 'message-text';
     messageText.textContent = messageData.text;
 
-    const messageTimeElement = document.createElement('div');
+    const messageTimeElement = document.createElement('span');
     messageTimeElement.className = 'message-time';
     messageTimeElement.textContent = messageTime;
 
@@ -271,17 +270,6 @@ function addMessageToChat(messageData, isMyMessage = false) {
 
     container.appendChild(messageDiv);
     container.scrollTop = container.scrollHeight;
-
-    // Определяем, короткое ли сообщение (примерно одна строка)
-    setTimeout(() => {
-        const textWidth = messageText.scrollWidth;
-        const containerWidth = messageContent.offsetWidth;
-        const isShortMessage = textWidth <= (containerWidth - 50); // Учитываем место для времени
-        
-        if (isShortMessage) {
-            messageContent.classList.add('short-message');
-        }
-    }, 0);
 }
 
 // Функция отправки сообщения
@@ -310,7 +298,7 @@ function handleExit() {
 async function goBack() {
     if (confirm('Are you sure you want to leave?')) {
         try { 
-            const response = await fetch(`${WORKER_API_URL}/cancel_match?match_id=${matchId}&is_aborted=${false}`)
+            const response = await fetch(`${WORKER_API_URL}/cancel_match?match_id=${matchId}`)
             if (response.ok) {
                 window.history.back();
             }

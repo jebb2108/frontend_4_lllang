@@ -156,10 +156,9 @@ body {
     border: 1px solid #f0e6d2;
     display: inline-block;
     max-width: 100%;
-    position: relative;
-    min-height: auto;
     word-wrap: break-word;
     overflow-wrap: break-word;
+    position: relative;
 }
 
 .message.my-message .message-content {
@@ -185,17 +184,17 @@ body {
     max-width: 100%;
     margin: 0;
     padding: 0;
+    display: inline;
 }
 
 .message-time {
     font-size: 0.65rem;
     opacity: 0.7;
     white-space: nowrap;
-    position: absolute;
-    bottom: 8px;
-    right: 12px;
     margin: 0;
     padding: 0;
+    display: inline-block;
+    margin-left: 8px;
 }
 
 .message.my-message .message-time {
@@ -204,46 +203,6 @@ body {
 
 .message.other-message .message-time {
     color: rgba(90, 90, 90, 0.7);
-}
-
-/* Для коротких сообщений - время в одной строке с текстом */
-.message-content.short-message {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-right: 14px;
-}
-
-.message-content.short-message .message-text {
-    margin-right: 8px;
-    flex: 1;
-    max-width: none;
-    /* Убираем абсолютное позиционирование для текста в коротких сообщениях */
-    position: static;
-}
-
-.message-content.short-message .message-time {
-    position: static;
-    margin-left: 8px;
-    flex-shrink: 0;
-    /* Убираем абсолютное позиционирование для времени в коротких сообщениях */
-    bottom: auto;
-    right: auto;
-}
-
-/* Для длинных сообщений - время под текстом */
-.message-content:not(.short-message) .message-text {
-    /* Добавляем небольшой отступ снизу для времени */
-    margin-bottom: 2px;
-}
-
-.message-content:not(.short-message) .message-time {
-    position: static;
-    text-align: right;
-    margin-top: 2px;
-    /* Убираем абсолютное позиционирование для времени в длинных сообщениях */
-    bottom: auto;
-    right: auto;
 }
 
 .waiting-container {
