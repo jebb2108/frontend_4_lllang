@@ -1,5 +1,6 @@
 const API_WS_URL = 'wss://chat.lllang.site';
 const WORKER_API_URL = 'https://chat.lllang.site/api/worker';
+const CHAT_API_URL = 'https://chat.llang.site'
 
 // Получаем room_id и token из URL параметров
 const urlParams = new URLSearchParams(window.location.search);
