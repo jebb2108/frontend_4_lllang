@@ -339,41 +339,73 @@ body {
     margin: 20px 0;
 }
 
-/* Стили для сообщения о выходе партнера */
-.partner-left-message {
-    background-color: #f8f9fa;
-    border-bottom: 1px solid #e0e0e0;
-    padding: 12px 16px;
+/* Новые стили для интерфейса после выхода партнера */
+.partner-left-container {
     display: none;
-}
-
-.partner-left-content {
-    display: flex;
-    justify-content: space-between;
+    flex-direction: column;
     align-items: center;
-    max-width: 1200px;
-    margin: 0 auto;
+    justify-content: center;
+    padding: 40px 20px;
+    background-color: #f8f5ec;
+    flex: 1;
 }
 
-.partner-left-text {
-    color: #666;
-    font-size: 14px;
-    font-weight: 500;
+.partner-left-icon {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 20px;
+    opacity: 0.7;
 }
 
-.exit-button {
-    background-color: #dc3545;
+.partner-left-icon svg {
+    width: 100%;
+    height: 100%;
+    fill: #888;
+}
+
+.partner-left-title {
+    font-size: 1.5rem;
+    color: #888;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.partner-left-subtitle {
+    font-size: 1rem;
+    color: #aaa;
+    margin-bottom: 30px;
+    text-align: center;
+    max-width: 300px;
+    line-height: 1.5;
+}
+
+.search-new-partner-button {
+    background-color: #2e7d32;
     color: white;
     border: none;
-    padding: 8px 16px;
-    border-radius: 6px;
+    border-radius: 24px;
+    padding: 16px 32px;
+    font-size: 1.1rem;
+    font-weight: 600;
     cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
+    width: 90%;
+    max-width: 300px;
+    transition: background-color 0.3s;
     font-family: 'Georgia', serif;
-    transition: background-color 0.2s;
 }
 
-.exit-button:hover {
-    background-color: #c82333;
+.search-new-partner-button:hover {
+    background-color: #388e3c;
+}
+
+/* Стиль для системного сообщения о выходе партнера */
+.partner-left-system-message {
+    text-align: center;
+    color: #888;
+    font-size: 14px;
+    margin: 20px 0;
+    padding: 12px;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+    font-style: italic;
 }

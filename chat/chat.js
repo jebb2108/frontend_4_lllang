@@ -128,10 +128,10 @@ function updatePartnerStatus(isOnline) {
 
 // Переключение на интерфейс чата
 function switchToChatInterface() {
-    // Скрываем интерфейс ожидания и сообщение о выходе партнера
+    // Скрываем интерфейс ожидания и интерфейс после выхода партнера
     document.querySelector('.waiting-header').style.display = 'none';
     document.getElementById('waitingContainer').style.display = 'none';
-    document.getElementById('partnerLeftMessage').style.display = 'none';
+    hidePartnerLeftInterface();
     
     // Показываем интерфейс чата
     document.querySelector('.connected-header').style.display = 'flex';
@@ -157,18 +157,23 @@ function switchToChatInterface() {
     console.log('Switched to chat interface');
 }
 
-// Показать интерфейс "Partner Left"
+// Показать интерфейс после выхода партнера
 function showPartnerLeftInterface() {
     // Скрываем интерфейс чата
     document.querySelector('.input-container').style.display = 'none';
     
-    // Показываем сообщение о выходе партнера
-    document.getElementById('partnerLeftMessage').style.display = 'flex';
+    // Показываем интерфейс "Partner Left"
+    document.getElementById('partnerLeftContainer').style.display = 'flex';
     
     // Обновляем статус партнера на оффлайн
     updatePartnerStatus(false);
     
     console.log('Partner left interface shown');
+}
+
+// Скрыть интерфейс после выхода партнера
+function hidePartnerLeftInterface() {
+    document.getElementById('partnerLeftContainer').style.display = 'none';
 }
 
 // Обработчик сообщений от сервера
@@ -259,11 +264,11 @@ function handlePartnerExited(reason) {
     document.getElementById('messageInput').disabled = true;
     document.getElementById('sendButton').disabled = true;
     
-    // Показываем сообщение о выходе партнера в чате
+    // Показываем системное сообщение о выходе партнера в чате
     const container = document.getElementById('messagesContainer');
     const partnerLeftMessage = document.createElement('div');
-    partnerLeftMessage.className = 'system-message';
-    partnerLeftMessage.textContent = reason;
+    partnerLeftMessage.className = 'partner-left-system-message';
+    partnerLeftMessage.textContent = "Partner left the chat";
     container.appendChild(partnerLeftMessage);
     
     // Показываем интерфейс "Partner Left"
@@ -524,8 +529,14 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('partnerLeftExitButton').addEventListener('click', function() {
         handleExit(false);
     });
+
+    // Обработчик для кнопки поиска нового партнера
+    document.getElementById('searchNewPartnerButton').addEventListener('click', function() {
+        handleExit(false);
+    });
     
     document.addEventListener('click', function() {
         document.querySelector('.dropdown-menu').classList.remove('show');
     });
+
 });
