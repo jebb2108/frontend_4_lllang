@@ -422,7 +422,7 @@ async function handleExit() {
             if (cancelResponse.ok) {
                 const result = await cancelResponse.json();
                 if (result.status === "success") {
-                    window.history.back();
+                    window.location.href = `/index.html?user_id=${userId}`;
                 } else {
                     throw new Error('Queue server returned failure');
                 }
