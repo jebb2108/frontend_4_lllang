@@ -13,6 +13,14 @@
             <h2>Messenger</h2>
         </div>
 
+        <!-- Сообщение о выходе партнера (скрыто по умолчанию) -->
+        <div id="partnerLeftMessage" class="partner-left-message" style="display: none;">
+            <div class="partner-left-content">
+                <span class="partner-left-text">Partner left</span>
+                <button id="partnerLeftExitButton" class="exit-button">Exit</button>
+            </div>
+        </div>
+
         <!-- Заголовок для режима чата (скрыт по умолчанию) -->
         <div class="chat-header connected-header" style="display: none;">
             <div class="partner-info">
@@ -43,7 +51,7 @@
                 <div class="timer-text" id="waitingTimer">30</div>
             </div>
             <div class="waiting-label">Waiting for partner...</div>
-            <button class="cancel-button" onclick="goBack()">Cancel</button>
+            <button class="cancel-button" onclick="handleExit(true)">Cancel</button>
         </div>
 
         <div class="input-container" style="display: none;">

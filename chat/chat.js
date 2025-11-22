@@ -74,6 +74,11 @@ function setPartnerNickname(nickname) {
 // Показать интерфейс ожидания
 function showWaitingInterface() {
     document.getElementById('waitingContainer').style.display = 'flex';
+    document.getElementById('partnerLeftMessage').style.display = 'none';
+    document.querySelector('.connected-header').style.display = 'none';
+    document.querySelector('.input-container').style.display = 'none';
+    document.querySelector('.waiting-header').style.display = 'flex';
+    
     startWaitTimer();
 }
 
@@ -123,9 +128,10 @@ function updatePartnerStatus(isOnline) {
 
 // Переключение на интерфейс чата
 function switchToChatInterface() {
-    // Скрываем интерфейс ожидания
+    // Скрываем интерфейс ожидания и сообщение о выходе партнера
     document.querySelector('.waiting-header').style.display = 'none';
     document.getElementById('waitingContainer').style.display = 'none';
+    document.getElementById('partnerLeftMessage').style.display = 'none';
     
     // Показываем интерфейс чата
     document.querySelector('.connected-header').style.display = 'flex';
@@ -149,6 +155,20 @@ function switchToChatInterface() {
     partnerDiscovered = true;
     
     console.log('Switched to chat interface');
+}
+
+// Показать интерфейс "Partner Left"
+function showPartnerLeftInterface() {
+    // Скрываем интерфейс чата
+    document.querySelector('.input-container').style.display = 'none';
+    
+    // Показываем сообщение о выходе партнера
+    document.getElementById('partnerLeftMessage').style.display = 'flex';
+    
+    // Обновляем статус партнера на оффлайн
+    updatePartnerStatus(false);
+    
+    console.log('Partner left interface shown');
 }
 
 // Обработчик сообщений от сервера
@@ -221,7 +241,36 @@ function handleWebSocketMessage(data) {
         case 'match_exited':
             handleSessionEnded(data.reason || 'Session has been terminated.');
             break;
+            
+        // Обработка выхода партнера
+        case 'user_exited':
+            handlePartnerExited(data.reason || 'Partner left the chat');
+            break;
     }
+}
+
+// Обработка выхода партнера
+function handlePartnerExited(reason) {
+    if (sessionEnded) return;
+    
+    console.log('Partner exited:', reason);
+    
+    // Блокируем возможность отправки сообщений
+    document.getElementById('messageInput').disabled = true;
+    document.getElementById('sendButton').disabled = true;
+    
+    // Показываем сообщение о выходе партнера в чате
+    const container = document.getElementById('messagesContainer');
+    const partnerLeftMessage = document.createElement('div');
+    partnerLeftMessage.className = 'system-message';
+    partnerLeftMessage.textContent = reason;
+    container.appendChild(partnerLeftMessage);
+    
+    // Показываем интерфейс "Partner Left"
+    showPartnerLeftInterface();
+    
+    // Устанавливаем флаг завершения сессии
+    sessionEnded = true;
 }
 
 // Функция для уведомления сервера чата о завершении сессии
@@ -286,10 +335,8 @@ function handleSessionEnded(reason) {
     sessionEndedMessage.textContent = reason;
     container.appendChild(sessionEndedMessage);
     
-    // Через 3 секунды автоматически возвращаем в очередь
-    setTimeout(() => {
-        window.location.href = `/index.html?user_id=${userId}`;
-    }, 3000);
+    // Показываем интерфейс "Partner Left"
+    showPartnerLeftInterface();
     
     // Останавливаем все таймеры
     if (timerInterval) {
@@ -326,6 +373,9 @@ function endSession(reason) {
     sessionEndedMessage.className = 'session-ended-message';
     sessionEndedMessage.textContent = reason || 'Session ended. Chat is locked.';
     container.appendChild(sessionEndedMessage);
+    
+    // Показываем интерфейс "Partner Left"
+    showPartnerLeftInterface();
     
     // Останавливаем таймер
     if (timerInterval) {
@@ -407,16 +457,17 @@ function handleReport() {
     document.querySelector('.dropdown-menu').classList.remove('show');
 }
 
-async function handleExit() {
+async function handleExit(is_aborted) {
     if (confirm('Are you sure you want to exit the chat?')) {
         setUILocked(true);
         try {
+            const message = is_aborted ? "Session aborted by user" : "Session exited by user";
             // 1. Сначала уведомляем сервер чата о завершении сессии
-            await notifyChatServer("Session exited by user");
+            await notifyChatServer(message);
             
             // 2. Затем меняем статус на сервере очереди
             const cancelResponse = await fetch(
-                `${WORKER_API_URL}/cancel_match?user_id=${userId}&is_aborted=false`
+                `${WORKER_API_URL}/cancel_match?user_id=${userId}&is_aborted=${is_aborted}`
             );
             
             if (cancelResponse.ok) {
@@ -432,36 +483,6 @@ async function handleExit() {
         } catch (error) {
             console.error('Error exiting chat:', error);
             alert('Error exiting chat. Please try again.');
-            setUILocked(false);
-        }
-    }
-}
-
-async function goBack() {
-    if (confirm('Are you sure you want to leave?')) {
-        setUILocked(true);
-        try {
-            // 1. Сначала уведомляем сервер чата о завершении сессии
-            await notifyChatServer("Session aborted by user");
-            
-            // 2. Затем меняем статус на сервере очереди
-            const cancelResponse = await fetch(
-                `${WORKER_API_URL}/cancel_match?user_id=${userId}&is_aborted=true`
-            );
-            
-            if (cancelResponse.ok) {
-                const result = await cancelResponse.json();
-                if (result.status === "success") {
-                    window.history.back();
-                } else {
-                    throw new Error('Queue server returned failure');
-                }
-            } else {
-                throw new Error('Failed to update queue server');
-            }
-        } catch (error) {
-            console.error('Error leaving chat:', error);
-            alert('Error leaving chat. Please try again.');
             setUILocked(false);
         }
     }
@@ -495,8 +516,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Обработчик для кнопки Exit
     document.getElementById('exitButton').addEventListener('click', function(e) {
         e.stopPropagation();
-        handleExit();
+        handleExit(false);
         document.querySelector('.dropdown-menu').classList.remove('show');
+    });
+    
+    // Обработчик для кнопки Exit в сообщении о выходе партнера
+    document.getElementById('partnerLeftExitButton').addEventListener('click', function() {
+        handleExit(false);
     });
     
     document.addEventListener('click', function() {
