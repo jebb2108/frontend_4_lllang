@@ -1,5 +1,5 @@
 const API_WS_URL = 'wss://chat.lllang.site';
-const WORKER_API_URL = 'https://chat.lllang.site/api/worker'
+const WORKER_API_URL = 'https://chat.lllang.site/api/worker';
 
 // Получаем room_id и token из URL параметров
 const urlParams = new URLSearchParams(window.location.search);
@@ -19,6 +19,7 @@ let partnerConnected = false;
 let timerInterval;
 let partnerNickname = null;
 let partnerDiscovered = false;
+let sessionEnded = false; // Флаг завершения сессии
 
 // Подключаемся к WebSocket серверу
 function connectWebSocket() {
@@ -212,12 +213,105 @@ function handleWebSocketMessage(data) {
                 setPartnerNickname(otherUsers[0]);
             }
             break;
+
+        // Обработка уведомлений о завершении сессии
+        case 'session_ended':
+        case 'match_aborted':
+        case 'match_exited':
+            handleSessionEnded(data.reason || 'Session has been terminated.');
+            break;
     }
 }
 
-// Функция завершения сессии
+// Функция для уведомления сервера чата о завершении сессии
+async function notifyChatServer(reason) {
+    try {
+        const response = await fetch(`${WS_API_URL}/notify_session_end`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                room_id: roomId,
+                reason: reason
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Chat server notification failed');
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error('Error notifying chat server:', error);
+        // Продолжаем выполнение даже если этот запрос не удался
+        // Пользователь все равно должен иметь возможность выйти
+    }
+}
+
+// Функция блокировки UI
+function setUILocked(locked) {
+    const exitButton = document.getElementById('exitButton');
+    const cancelButton = document.querySelector('.cancel-button');
+    
+    if (exitButton) exitButton.disabled = locked;
+    if (cancelButton) cancelButton.disabled = locked;
+    
+    // Можно добавить спиннер загрузки при необходимости
+    if (locked) {
+        // Показать индикатор загрузки
+        console.log('UI locked');
+    } else {
+        // Скрыть индикатор загрузки
+        console.log('UI unlocked');
+    }
+}
+
+// Функция обработки завершения сессии
+function handleSessionEnded(reason) {
+    if (sessionEnded) return; // Если сессия уже завершена, ничего не делаем
+    
+    sessionEnded = true;
+    console.log('Session ended by server:', reason);
+    
+    // Блокируем возможность отправки сообщений
+    document.getElementById('messageInput').disabled = true;
+    document.getElementById('sendButton').disabled = true;
+    
+    // Показываем сообщение о завершении сессии
+    const container = document.getElementById('messagesContainer');
+    const sessionEndedMessage = document.createElement('div');
+    sessionEndedMessage.className = 'session-ended-message';
+    sessionEndedMessage.textContent = reason;
+    container.appendChild(sessionEndedMessage);
+    
+    // Через 3 секунды автоматически возвращаем в очередь
+    setTimeout(() => {
+        window.location.href = `/waiting.html?user_id=${userId}`;
+    }, 3000);
+    
+    // Останавливаем все таймеры
+    if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+    }
+    
+    // Обновляем статус партнера на оффлайн
+    updatePartnerStatus(false);
+    
+    // Закрываем WebSocket соединение
+    if (websocket && websocket.readyState === WebSocket.OPEN) {
+        websocket.close();
+    }
+}
+
+// Функция завершения сессии (локальная)
 function endSession(reason) {
+    if (sessionEnded) return;
+    
     console.log('Ending session:', reason);
+    
+    sessionEnded = true;
     
     if (websocket) {
         websocket.close();
@@ -241,6 +335,9 @@ function endSession(reason) {
 
 // Функция добавления сообщения в чат
 function addMessageToChat(messageData, isMyMessage = false) {
+    // Если сессия завершена, не добавляем новые сообщения
+    if (sessionEnded) return;
+    
     const container = document.getElementById('messagesContainer');
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${isMyMessage ? 'my-message' : 'other-message'}`;
@@ -289,6 +386,11 @@ function addMessageToChat(messageData, isMyMessage = false) {
 
 // Функция отправки сообщения
 function sendMessage() {
+    // Если сессия завершена, блокируем отправку сообщений
+    if (sessionEnded) {
+        return;
+    }
+    
     const messageInput = document.getElementById('messageInput');
     const message = messageInput.value.trim();
 
@@ -306,26 +408,60 @@ function handleReport() {
 
 async function handleExit() {
     if (confirm('Are you sure you want to exit the chat?')) {
-        try { 
-            const response = await fetch(`${WORKER_API_URL}/cancel_match?user_id=${userId}&is_aborted=false`)
-            if (response.ok) {
-                window.history.back();
+        setUILocked(true);
+        try {
+            // 1. Сначала уведомляем сервер чата о завершении сессии
+            await notifyChatServer("Session exited by user");
+            
+            // 2. Затем меняем статус на сервере очереди
+            const cancelResponse = await fetch(
+                `${WORKER_API_URL}/cancel_match?user_id=${userId}&is_aborted=false`
+            );
+            
+            if (cancelResponse.ok) {
+                const result = await cancelResponse.json();
+                if (result.status === "success") {
+                    window.history.back();
+                } else {
+                    throw new Error('Queue server returned failure');
+                }
+            } else {
+                throw new Error('Failed to update queue server');
             }
         } catch (error) {
-            console.error('Error going back to queue:', error);
+            console.error('Error exiting chat:', error);
+            alert('Error exiting chat. Please try again.');
+            setUILocked(false);
         }
     }
 }
 
 async function goBack() {
     if (confirm('Are you sure you want to leave?')) {
-        try { 
-            const response = await fetch(`${WORKER_API_URL}/cancel_match?match_id=${matchId}&is_aborted=true`)
-            if (response.ok) {
-                window.history.back();
+        setUILocked(true);
+        try {
+            // 1. Сначала уведомляем сервер чата о завершении сессии
+            await notifyChatServer("Session aborted by user");
+            
+            // 2. Затем меняем статус на сервере очереди
+            const cancelResponse = await fetch(
+                `${WORKER_API_URL}/cancel_match?user_id=${userId}&is_aborted=true`
+            );
+            
+            if (cancelResponse.ok) {
+                const result = await cancelResponse.json();
+                if (result.status === "success") {
+                    window.history.back();
+                } else {
+                    throw new Error('Queue server returned failure');
+                }
+            } else {
+                throw new Error('Failed to update queue server');
             }
         } catch (error) {
-            console.error('Error going back to queue:', error);
+            console.error('Error leaving chat:', error);
+            alert('Error leaving chat. Please try again.');
+            setUILocked(false);
         }
     }
 }
