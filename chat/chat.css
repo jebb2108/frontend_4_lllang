@@ -329,54 +329,38 @@ body {
     border-left: 3px solid #2e7d32;
 }
 
+/* Убрать красное сообщение о завершении сессии */
 .session-ended-message {
-    text-align: center;
-    color: #c62828;
-    font-weight: 500;
-    padding: 15px;
-    background-color: #fef2f2;
-    border-radius: 8px;
-    margin: 20px 0;
+    display: none;
 }
 
 /* Новые стили для интерфейса после выхода партнера */
-.partner-left-container {
+.partner-left-banner {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e0e0e0;
+    padding: 15px 20px;
     display: none;
-    flex-direction: column;
+}
+
+.partner-left-content {
+    display: flex;
     align-items: center;
     justify-content: center;
-    padding: 40px 20px;
-    background-color: #f8f5ec;
-    flex: 1;
+    gap: 10px;
 }
 
-.partner-left-icon {
-    width: 80px;
-    height: 80px;
-    margin-bottom: 20px;
-    opacity: 0.7;
+.partner-left-text {
+    color: #666;
+    font-size: 16px;
+    font-weight: 500;
 }
 
-.partner-left-icon svg {
-    width: 100%;
-    height: 100%;
-    fill: #888;
-}
-
-.partner-left-title {
-    font-size: 1.5rem;
-    color: #888;
-    margin-bottom: 10px;
-    text-align: center;
-}
-
-.partner-left-subtitle {
-    font-size: 1rem;
-    color: #aaa;
-    margin-bottom: 30px;
-    text-align: center;
-    max-width: 300px;
-    line-height: 1.5;
+.partner-left-button-container {
+    padding: 20px;
+    background-color: #fffdf6;
+    border-top: 1px solid #e0d9c0;
+    display: none;
+    flex-shrink: 0;
 }
 
 .search-new-partner-button {
@@ -384,12 +368,11 @@ body {
     color: white;
     border: none;
     border-radius: 24px;
-    padding: 16px 32px;
+    padding: 16px;
     font-size: 1.1rem;
     font-weight: 600;
     cursor: pointer;
-    width: 90%;
-    max-width: 300px;
+    width: 100%;
     transition: background-color 0.3s;
     font-family: 'Georgia', serif;
 }

@@ -74,7 +74,7 @@ function setPartnerNickname(nickname) {
 // Показать интерфейс ожидания
 function showWaitingInterface() {
     document.getElementById('waitingContainer').style.display = 'flex';
-    document.getElementById('partnerLeftMessage').style.display = 'none';
+    hidePartnerLeftInterface();
     document.querySelector('.connected-header').style.display = 'none';
     document.querySelector('.input-container').style.display = 'none';
     document.querySelector('.waiting-header').style.display = 'flex';
@@ -159,11 +159,12 @@ function switchToChatInterface() {
 
 // Показать интерфейс после выхода партнера
 function showPartnerLeftInterface() {
-    // Скрываем интерфейс чата
+    // Скрываем поле ввода сообщений
     document.querySelector('.input-container').style.display = 'none';
     
-    // Показываем интерфейс "Partner Left"
-    document.getElementById('partnerLeftContainer').style.display = 'flex';
+    // Показываем баннер под шапкой и кнопку внизу
+    document.getElementById('partnerLeftBanner').style.display = 'block';
+    document.getElementById('partnerLeftButton').style.display = 'block';
     
     // Обновляем статус партнера на оффлайн
     updatePartnerStatus(false);
@@ -173,7 +174,8 @@ function showPartnerLeftInterface() {
 
 // Скрыть интерфейс после выхода партнера
 function hidePartnerLeftInterface() {
-    document.getElementById('partnerLeftContainer').style.display = 'none';
+    document.getElementById('partnerLeftBanner').style.display = 'none';
+    document.getElementById('partnerLeftButton').style.display = 'none';
 }
 
 // Обработчик сообщений от сервера
@@ -333,13 +335,6 @@ function handleSessionEnded(reason) {
     document.getElementById('messageInput').disabled = true;
     document.getElementById('sendButton').disabled = true;
     
-    // Показываем сообщение о завершении сессии
-    const container = document.getElementById('messagesContainer');
-    const sessionEndedMessage = document.createElement('div');
-    sessionEndedMessage.className = 'session-ended-message';
-    sessionEndedMessage.textContent = reason;
-    container.appendChild(sessionEndedMessage);
-    
     // Показываем интерфейс "Partner Left"
     showPartnerLeftInterface();
     
@@ -373,12 +368,6 @@ function endSession(reason) {
     document.getElementById('messageInput').disabled = true;
     document.getElementById('sendButton').disabled = true;
 
-    const container = document.getElementById('messagesContainer');
-    const sessionEndedMessage = document.createElement('div');
-    sessionEndedMessage.className = 'session-ended-message';
-    sessionEndedMessage.textContent = reason || 'Session ended. Chat is locked.';
-    container.appendChild(sessionEndedMessage);
-    
     // Показываем интерфейс "Partner Left"
     showPartnerLeftInterface();
     
@@ -525,11 +514,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelector('.dropdown-menu').classList.remove('show');
     });
     
-    // Обработчик для кнопки Exit в сообщении о выходе партнера
-    document.getElementById('partnerLeftExitButton').addEventListener('click', function() {
-        handleExit(false);
-    });
-
     // Обработчик для кнопки поиска нового партнера
     document.getElementById('searchNewPartnerButton').addEventListener('click', function() {
         handleExit(false);
@@ -538,5 +522,4 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('click', function() {
         document.querySelector('.dropdown-menu').classList.remove('show');
     });
-
 });

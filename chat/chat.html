@@ -13,26 +13,6 @@
             <h2>Messenger</h2>
         </div>
 
-        <!-- Сообщение о выходе партнера (скрыто по умолчанию) -->
-        <div id="partnerLeftMessage" class="partner-left-message" style="display: none;">
-            <div class="partner-left-content">
-                <span class="partner-left-text">Partner left</span>
-                <button id="partnerLeftExitButton" class="exit-button">Exit</button>
-            </div>
-        </div>
-
-        <!-- Интерфейс после выхода партнера (скрыт по умолчанию) -->
-        <div id="partnerLeftContainer" class="partner-left-container" style="display: none;">
-            <div class="partner-left-icon">
-                <svg viewBox="0 0 24 24">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                </svg>
-            </div>
-            <div class="partner-left-title">Partner Left</div>
-            <div class="partner-left-subtitle">Your conversation has ended. Start a new chat with another partner.</div>
-            <button id="searchNewPartnerButton" class="search-new-partner-button">Search for another partner</button>
-        </div>
-
         <!-- Заголовок для режима чата (скрыт по умолчанию) -->
         <div class="chat-header connected-header" style="display: none;">
             <div class="partner-info">
@@ -45,6 +25,13 @@
                     <button class="menu-item" onclick="handleReport()">Report</button>
                     <button class="menu-item" id="exitButton">Exit</button>
                 </div>
+            </div>
+        </div>
+
+        <!-- Баннер о выходе партнера под шапкой -->
+        <div id="partnerLeftBanner" class="partner-left-banner" style="display: none;">
+            <div class="partner-left-content">
+                <div class="partner-left-text">Partner Left</div>
             </div>
         </div>
 
@@ -69,6 +56,11 @@
         <div class="input-container" style="display: none;">
             <input type="text" id="messageInput" placeholder="Enter your message...">
             <button id="sendButton" onclick="sendMessage()">Send</button>
+        </div>
+
+        <!-- Кнопка поиска нового партнера внизу -->
+        <div id="partnerLeftButton" class="partner-left-button-container" style="display: none;">
+            <button id="searchNewPartnerButton" class="search-new-partner-button">Search for another partner</button>
         </div>
     </div>
     <script src="/chat.js?v=20251119"></script>
