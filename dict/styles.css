@@ -227,6 +227,13 @@ input:focus, select:focus, textarea:focus {
 }
 
 /* Стили для заголовка поиска */
+.searched-word-container {
+    flex-grow: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+}
+
 .search-header-default {
     display: block;
 }
@@ -235,6 +242,7 @@ input:focus, select:focus, textarea:focus {
     display: none;
     align-items: center;
     margin-bottom: 25px;
+    flex-wrap: nowrap;
 }
 
 .refresh-btn {
@@ -247,10 +255,14 @@ input:focus, select:focus, textarea:focus {
     border-radius: 50%;
     transition: color 0.3s ease;
     margin-right: 15px;
+    flex-shrink: 0;
+}
+
+.refresh-btn:hover {
+    color: #1b5e20;
 }
 
 /* Убираем все эффекты нажатия для стрелочки */
-.refresh-btn:hover,
 .refresh-btn:active,
 .refresh-btn:focus {
     background: none;
@@ -259,19 +271,26 @@ input:focus, select:focus, textarea:focus {
     outline: none;
 }
 
-.refresh-btn:hover {
-    color: #1b5e20;
+.searched-word-container {
+    flex-grow: 1;
+    min-width: 0; 
+    display: flex;
+    align-items: center;
 }
 
 .searched-word {
     color: #2e7d32;
     font-size: 1.8rem;
     font-weight: 700;
-    text-align: center;
+    text-align: left; 
     flex-grow: 1;
     margin: 0;
     text-transform: lowercase;
+    white-space: nowrap; 
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
+
 
 .searched-word::first-letter {
     text-transform: uppercase;
@@ -1025,31 +1044,33 @@ textarea {
         height: 44px;
     }
 
-    /* Стили для поиска на мобильных */
     .search-header-result {
-        flex-direction: column;
-        gap: 10px;
-        text-align: center;
+        position: relative;
+        top: 0;
+        margin-top: 0;
+        flex-wrap: nowrap; 
+        align-items: center;
     }
-    
+
     .refresh-btn {
-        align-self: flex-start;
-        margin-right: 0;
+        margin-right: 10px; 
+        font-size: 1.3rem; 
+        padding: 6px 10px;
     }
-    
+
     .searched-word {
-        font-size: 1.5rem;
+        font-size: 1.4rem;
+        text-align: left;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
-    
-    .user-word-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 5px;
+
+    .search-header-result {
+        flex-direction: row !important;
     }
-    
-    .other-word-main {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 3px;
+
+    .refresh-btn {
+        align-self: center !important;
     }
 }
