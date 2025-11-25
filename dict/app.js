@@ -569,7 +569,7 @@ function createOtherUserWord(wordData) {
     
     wordElement.innerHTML = `
         <div class="other-word-main">
-            <span class="other-word-text">${escapeHtml(wordData.word)}</span>
+            <span class="other-word-text">${escapeHTML(wordData.word)}</span>
             <span class="other-word-pos">${getPartOfSpeechName(wordData.part_of_speech)}</span>
         </div>
         <div class="other-word-stats">
