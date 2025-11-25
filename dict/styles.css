@@ -109,8 +109,6 @@ body {
 .page-title {
     color: #2e7d32;
     margin-bottom: 25px;
-    padding-bottom: 15px;
-    border-bottom: 2px solid #e8f5e9;
     font-size: 1.8rem;
     display: flex;
     align-items: center;
@@ -237,8 +235,6 @@ input:focus, select:focus, textarea:focus {
     display: none;
     align-items: center;
     margin-bottom: 25px;
-    padding-bottom: 15px;
-    border-bottom: 2px solid #e8f5e9;
 }
 
 .refresh-btn {
@@ -249,12 +245,22 @@ input:focus, select:focus, textarea:focus {
     cursor: pointer;
     padding: 8px 12px;
     border-radius: 50%;
-    transition: background-color 0.3s ease;
+    transition: color 0.3s ease;
     margin-right: 15px;
 }
 
+/* Убираем все эффекты нажатия для стрелочки */
+.refresh-btn:hover,
+.refresh-btn:active,
+.refresh-btn:focus {
+    background: none;
+    transform: none;
+    box-shadow: none;
+    outline: none;
+}
+
 .refresh-btn:hover {
-    background-color: #e8f5e9;
+    color: #1b5e20;
 }
 
 .searched-word {
@@ -330,8 +336,6 @@ input:focus, select:focus, textarea:focus {
 /* Слова других пользователей */
 .other-users-words {
     margin-top: 20px;
-    padding-top: 20px;
-    border-top: 1px solid #e0e0e0;
 }
 
 .other-words-title {
@@ -339,8 +343,6 @@ input:focus, select:focus, textarea:focus {
     margin-bottom: 12px;
     font-size: 1.1rem;
     font-weight: 600;
-    padding-bottom: 8px;
-    border-bottom: 1px solid #f0f0f0;
 }
 
 .other-user-word {
@@ -351,7 +353,6 @@ input:focus, select:focus, textarea:focus {
     cursor: pointer;
     transition: all 0.3s ease;
     background: white;
-    border-left: 1px solid #e0d9c0;
 }
 
 .other-user-word:hover {
@@ -433,7 +434,6 @@ table {
 }
 
 th, td { 
-    border-bottom: 1px solid #f0ede3; 
     padding: 15px; 
     text-align: left; 
 }
@@ -519,7 +519,6 @@ tr:hover {
     color: #757575;
     font-size: 0.9rem;
     background: #f8f9f5;
-    border-top: 1px solid #f0ede3;
     margin-top: auto;
 }
 
@@ -710,7 +709,6 @@ textarea {
 .word-main {
     text-align: center;
     padding-bottom: 20px;
-    border-bottom: 2px solid #e8f5e9;
 }
 
 .word-text {
@@ -742,7 +740,6 @@ textarea {
     background: #f8f9f5;
     padding: 15px;
     border-radius: 8px;
-    border-left: 3px solid #2e7d32;
 }
 
 .word-context h4 {
@@ -795,7 +792,6 @@ textarea {
     align-items: center;
     margin-top: 25px;
     padding-top: 20px;
-    border-top: 1px solid #f0e6d2;
 }
 
 .nav-btn {
@@ -947,6 +943,13 @@ textarea {
         padding: 20px;
         height: 100%;
         overflow-y: auto;
+    }
+
+    /* Исправление позиционирования заголовка поиска на мобильных */
+    .search-header-result {
+        position: relative;
+        top: 0;
+        margin-top: 0;
     }
 
     .word-input-container {
