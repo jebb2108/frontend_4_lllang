@@ -597,21 +597,23 @@ function createOtherUserWord(wordData, username) {
     }
     
     wordElement.innerHTML = `
-        <div class="other-word-main">
-            <div class="other-word-header">
+        <div class="other-word-first-line">
+            <div class="other-word-text-container">
                 <span class="other-word-text">${escapeHTML(wordData.word)}</span>
-                <span class="other-word-pos">${getPartOfSpeechName(wordData.part_of_speech)}</span>
+                <span class="other-word-separator"> — </span>
+                <span class="other-word-translation">${escapeHTML(translationText)}</span>
             </div>
-            <div class="other-word-translation">${escapeHTML(translationText)}</div>
         </div>
-        <div class="other-word-meta">
-            <span class="other-word-username">@${escapeHTML(username)}</span>
-            ${formattedDate ? `<span class="other-word-date">${formattedDate}</span>` : ''}
-        </div>
-        <div class="other-word-stats">
-            <span class="stat-item"><i class="fas fa-thumbs-up"></i> ${likes}</span>
-            <span class="stat-item"><i class="fas fa-thumbs-down"></i> ${dislikes}</span>
-            <span class="stat-item"><i class="fas fa-comments"></i> ${comments}</span>
+        <div class="other-word-second-line">
+            <div class="other-word-stats">
+                <span class="stat-item"><i class="fas fa-thumbs-up"></i> ${likes}</span>
+                <span class="stat-item"><i class="fas fa-thumbs-down"></i> ${dislikes}</span>
+                <span class="stat-item"><i class="fas fa-comments"></i> ${comments}</span>
+            </div>
+            <div class="other-word-meta">
+                <span class="other-word-username">@${escapeHTML(username)}</span>
+                ${formattedDate ? `<span class="other-word-date">${formattedDate}</span>` : ''}
+            </div>
         </div>
     `;
     
