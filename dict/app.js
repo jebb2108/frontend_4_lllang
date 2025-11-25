@@ -584,9 +584,9 @@ function createOtherUserWord(wordData, username) {
     }
     
     // Статистика
-    const likes = wordData.likes || 0;
-    const dislikes = wordData.dislikes || 0;
-    const comments = wordData.comments ? wordData.comments.length : 0;
+    const likes = wordData.likes || '';
+    const dislikes = wordData.dislikes || '';
+    const comments = wordData.comments ? wordData.comments.length : '';
     
     // Получаем перевод (может быть массивом или строкой)
     let translationText = '';
