@@ -499,12 +499,12 @@ function createUserWordCard(userWord) {
     
     card.innerHTML = `
         <div class="user-word-header">
-            <span class="user-word-text">${escapeHtml(userWord.word)}</span>
+            <span class="user-word-text">${escapeHTML(userWord.word)}</span>
             <span class="user-word-pos">${getPartOfSpeechName(userWord.part_of_speech)}</span>
         </div>
         <div class="user-word-translations">
             <ol>
-                ${translations.map(trans => `<li>${escapeHtml(trans)}</li>`).join('')}
+                ${translations.map(trans => `<li>${escapeHTML(trans)}</li>`).join('')}
             </ol>
         </div>
         <div class="user-word-date">${formattedDate}</div>
