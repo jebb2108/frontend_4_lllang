@@ -436,8 +436,10 @@ async function findTranslation() {
         searchResult.innerHTML = '';
 
         if (result) {
-            // 1) Слово пользователя в рамке - проверяем, что оно действительно существует
-            const hasValidUserWord = result.user_word && result.user_word.word && result.user_word.word.trim() !== '';
+            // 1) Слово пользователя - проверяем, что оно действительно существует
+            const hasValidUserWord = result.user_word && 
+                                   result.user_word.word && 
+                                   result.user_word.word.trim() !== '';
             
             if (hasValidUserWord) {
                 const userWordCard = createUserWordCard(result.user_word);
@@ -445,15 +447,21 @@ async function findTranslation() {
             }
 
             // 2) Слова других пользователей
-            const hasOtherWords = result.all_users_words && Object.keys(result.all_users_words).length > 0;
+            const hasOtherWords = result.all_users_words && 
+                    Object.keys(result.all_users_words).length > 0;
             
             if (hasOtherWords) {
                 const otherWordsContainer = createOtherUsersWords(result.all_users_words);
-                searchResult.appendChild(otherWordsContainer);
+                // Проверяем, что контейнер не пустой
+                if (otherWordsContainer.children.length > 0) {
+                    searchResult.appendChild(otherWordsContainer);
+                }
             }
 
             // 3) Если ничего нет - сообщение
-            if (!hasValidUserWord && !hasOtherWords) {
+            const hasContent = hasValidUserWord || (hasOtherWords && searchResult.children.length > 0);
+            
+            if (!hasContent) {
                 const emptyMessage = document.createElement('div');
                 emptyMessage.className = 'empty-message';
                 emptyMessage.innerHTML = `
@@ -521,18 +529,29 @@ function createUserWordCard(userWord) {
     return card;
 }
 
-function createOtherUsersWords(words) {
+function createOtherUsersWords(wordsDict) {
     const container = document.createElement('div');
     container.className = 'other-users-words';
+    
+    // Получаем массив пар [username, wordData] и берем первые 3
+    const wordsEntries = Object.entries(wordsDict || {}).slice(0, 3);
+    
+    if (wordsEntries.length === 0) {
+        return container; // Возвращаем пустой контейнер
+    }
     
     const title = document.createElement('h3');
     title.className = 'other-words-title';
     title.textContent = 'Переводы других пользователей';
     container.appendChild(title);
     
-    words.forEach(wordData => {
-        const wordElement = createOtherUserWord(wordData);
-        container.appendChild(wordElement);
+    // Создаем элементы для каждого слова
+    wordsEntries.forEach(([username, wordData]) => {
+        // Проверяем, что слово валидно
+        if (wordData && wordData.word && wordData.word.trim() !== '') {
+            const wordElement = createOtherUserWord(wordData);
+            container.appendChild(wordElement);
+        }
     });
     
     return container;
