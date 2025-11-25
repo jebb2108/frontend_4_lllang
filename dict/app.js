@@ -428,16 +428,49 @@ async function findTranslation() {
         const searchResult = document.getElementById('searchResult');
         if (!searchResult) return;
 
-        if (result && result.word) {
-            document.getElementById('resultWord').textContent = result.word;
-            document.getElementById('resultPos').textContent = getPartOfSpeechName(result.part_of_speech);
-            document.getElementById('resultTranslation').textContent = result.translation;
+        // Очищаем предыдущие результаты
+        searchResult.innerHTML = '';
+
+        if (result) {
+            // 1) Слово пользователя в рамке
+            if (result.user_word) {
+                const userWordCard = createUserWordCard(result.user_word);
+                searchResult.appendChild(userWordCard);
+            }
+
+            // 2) Слова других пользователей
+            if (result.all_users_words && result.all_users_words.length > 0) {
+                const otherWordsContainer = createOtherUsersWords(result.all_users_words.slice(0, 3));
+                searchResult.appendChild(otherWordsContainer);
+            }
+
+            // 3) Если ничего нет - сообщение
+            if (!result.user_word && (!result.all_users_words || result.all_users_words.length === 0)) {
+                const emptyMessage = document.createElement('div');
+                emptyMessage.className = 'empty-message';
+                emptyMessage.innerHTML = `
+                    <div class="empty-icon">
+                        <i class="fas fa-bullhorn"></i>
+                    </div>
+                    <h3>Будьте первыми, кто сделает запись этого слова публичным!</h3>
+                `;
+                searchResult.appendChild(emptyMessage);
+            }
+
+            searchResult.style.display = 'block';
         } else {
-            document.getElementById('resultWord').textContent = word;
-            document.getElementById('resultPos').textContent = 'не найдено';
-            document.getElementById('resultTranslation').textContent = 'Слово не найдено в словаре';
+            // Если результат null
+            const emptyMessage = document.createElement('div');
+            emptyMessage.className = 'empty-message';
+            emptyMessage.innerHTML = `
+                <div class="empty-icon">
+                    <i class="fas fa-search"></i>
+                </div>
+                <h3>Слово не найдено в словаре</h3>
+            `;
+            searchResult.appendChild(emptyMessage);
+            searchResult.style.display = 'block';
         }
-        searchResult.style.display = 'block';
 
     } catch (err) {
         console.error('findTranslation error:', err);
@@ -445,6 +478,88 @@ async function findTranslation() {
     } finally {
         if (loadingOverlay) loadingOverlay.style.display = 'none';
     }
+}
+
+// Вспомогательные функции для создания элементов
+function createUserWordCard(userWord) {
+    const card = document.createElement('div');
+    card.className = 'user-word-card';
+    
+    // Форматируем дату
+    const date = new Date(userWord.created_at);
+    const formattedDate = date.toLocaleDateString('ru-RU');
+    
+    // Обрабатываем переводы (предполагаем, что это массив или строка)
+    let translations = [];
+    if (Array.isArray(userWord.translation)) {
+        translations = userWord.translation.slice(0, 3);
+    } else if (typeof userWord.translation === 'string') {
+        translations = [userWord.translation];
+    }
+    
+    card.innerHTML = `
+        <div class="user-word-header">
+            <span class="user-word-text">${escapeHtml(userWord.word)}</span>
+            <span class="user-word-pos">${getPartOfSpeechName(userWord.part_of_speech)}</span>
+        </div>
+        <div class="user-word-translations">
+            <ol>
+                ${translations.map(trans => `<li>${escapeHtml(trans)}</li>`).join('')}
+            </ol>
+        </div>
+        <div class="user-word-date">${formattedDate}</div>
+    `;
+    
+    return card;
+}
+
+function createOtherUsersWords(words) {
+    const container = document.createElement('div');
+    container.className = 'other-users-words';
+    
+    const title = document.createElement('h3');
+    title.className = 'other-words-title';
+    title.textContent = 'Переводы других пользователей';
+    container.appendChild(title);
+    
+    words.forEach(wordData => {
+        const wordElement = createOtherUserWord(wordData);
+        container.appendChild(wordElement);
+    });
+    
+    return container;
+}
+
+function createOtherUserWord(wordData) {
+    const wordElement = document.createElement('div');
+    wordElement.className = 'other-user-word';
+    wordElement.setAttribute('data-word-id', wordData.id || '');
+    
+    // Статистика (предполагаем структуру данных)
+    const likes = wordData.likes || 0;
+    const dislikes = wordData.dislikes || 0;
+    const comments = wordData.comments ? wordData.comments.length : 0;
+    
+    wordElement.innerHTML = `
+        <div class="other-word-main">
+            <span class="other-word-text">${escapeHtml(wordData.word)}</span>
+            <span class="other-word-pos">${getPartOfSpeechName(wordData.part_of_speech)}</span>
+        </div>
+        <div class="other-word-stats">
+            <span class="stat-item"><i class="fas fa-thumbs-up"></i> ${likes}</span>
+            <span class="stat-item"><i class="fas fa-thumbs-down"></i> ${dislikes}</span>
+            <span class="stat-item"><i class="fas fa-comments"></i> ${comments}</span>
+        </div>
+    `;
+    
+    // Обработчик клика для перехода на детальную страницу
+    wordElement.addEventListener('click', function() {
+        // Заглушка для перехода на детальную страницу
+        console.log('Переход к слову:', wordData);
+        // window.location.href = `/word-details.html?word_id=${wordData.id}`;
+    });
+    
+    return wordElement;
 }
 
 // --- Delete word ---
@@ -630,7 +745,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 🔄 УЛУЧШЕННАЯ ИНИЦИАЛИЗАЦИЯ С ИЗВЛЕЧЕНИЕМ ИЗ URL
     function initializeFromURL() {
-        console.log('🔄 Извлечение данных из URL...');
+        console.log('🔄 Извлечение данных из URL hash...');
         
         try {
             // Получаем параметры из hash
@@ -638,7 +753,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const tgWebAppData = hashParams.get('tgWebAppData');
             
             if (tgWebAppData) {
-                console.log('✅ tgWebAppData найден в URL');
+                console.log('✅ tgWebAppData найден в URL hash');
                 
                 // Парсим tgWebAppData
                 const dataParams = new URLSearchParams(tgWebAppData);
@@ -649,19 +764,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     const decodedUser = decodeURIComponent(userParam);
                     const userData = JSON.parse(decodedUser);
                     
-                    console.log('👤 Данные пользователя из URL:', userData);
+                    console.log('👤 Данные пользователя из URL hash:', userData);
                     
                     if (userData && userData.id) {
                         const userId = String(userData.id);
-                        console.log('✅ USER ID извлечен из URL:', userId);
+                        console.log('✅ USER ID извлечен из URL hash:', userId);
                         return userId;
                     }
                 }
             }
         } catch (error) {
-            console.error('❌ Ошибка при извлечении данных из URL:', error);
+            console.error('❌ Ошибка при извлечении данных из URL hash:', error);
         }
         
+        console.log('❌ USER ID не найден в URL hash');
         return null;
     }
 
@@ -714,40 +830,72 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 🔄 ОСНОВНАЯ ФУНКЦИЯ ИНИЦИАЛИЗАЦИИ
-    async function initializeApp() {
-        let userId = null;
-    
-        // 1. Пробуем загрузить Telegram WebApp
-        userId = await loadTelegramWebApp();
-    
-        // 2. Если не получилось, извлекаем из URL
-        if (!userId) {
-            userId = initializeFromURL();
-        }
-    
-        // 3. Устанавливаем user_id
-        if (userId) {
-            currentUserId = userId;
-            console.log('🎉 USER ID установлен:', currentUserId);
-        
-            // Обновляем URL
-            updateUrlWithUserId(currentUserId);
-        
-            // Загружаем данные
-            loadWords();
-            loadStatistics();
-        } else {
-            // 4. Если user_id не найден
-            console.error('❌ Не удалось определить user_id');
-            showNotification('Ошибка: Не удалось определить ID пользователя', 'error');
-        }
-    
-        // Инициализируем остальные компоненты
-        setupEventListeners();
-        initializeCustomComponents();
-        initializeVoiceRecognition();
+// 🔄 ФУНКЦИЯ ОБНОВЛЕНИЯ URL
+function updateUrlWithUserId(userId) {
+    try {
+        const url = new URL(window.location);
+        url.searchParams.set('user_id', userId);
+        window.history.replaceState({}, '', url);
+        console.log('🔗 URL обновлен:', url.toString());
+    } catch (e) {
+        console.warn('Не удалось обновить URL:', e);
     }
+}
+
+// 🔄 ФУНКЦИЯ ДЛЯ ИЗВЛЕЧЕНИЯ USER_ID ИЗ URL (добавьте эту новую функцию)
+function getUserIdFromUrl() {
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const userId = urlParams.get('user_id');
+        if (userId) {
+            console.log('✅ USER ID найден в URL параметрах:', userId);
+            return userId;
+        }
+    } catch (error) {
+        console.error('❌ Ошибка при извлечении user_id из URL:', error);
+    }
+    return null;
+}
+
+// ФУНКЦИЯ ИНИЦИАЛИЗАЦИИ
+async function initializeApp() {
+    let userId = null;
+
+    // 0. ПЕРВЫЙ ПРИОРИТЕТ: Пробуем извлечь из URL параметров (для отладки)
+    userId = getUserIdFromUrl();
+    
+    // 1. Если не нашли в URL, пробуем загрузить Telegram WebApp
+    if (!userId) {
+        userId = await loadTelegramWebApp();
+    }
+
+    // 2. Если не получилось, извлекаем из URL hash (старый способ)
+    if (!userId) {
+        userId = initializeFromURL();
+    }
+
+    // 3. Устанавливаем user_id
+    if (userId) {
+        currentUserId = userId;
+        console.log('🎉 USER ID установлен:', currentUserId);
+    
+        // Обновляем URL с user_id для отладки
+        updateUrlWithUserId(currentUserId);
+    
+        // Загружаем данные
+        loadWords();
+        loadStatistics();
+    } else {
+        // 4. Если user_id не найден
+        console.error('❌ Не удалось определить user_id');
+        showNotification('Ошибка: Не удалось определить ID пользователя', 'error');
+    }
+
+    // Инициализируем остальные компоненты
+    setupEventListeners();
+    initializeCustomComponents();
+    initializeVoiceRecognition();
+}
 
     // 🔄 ФУНКЦИЯ ОБНОВЛЕНИЯ URL
     function updateUrlWithUserId(userId) {

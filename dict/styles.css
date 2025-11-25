@@ -844,3 +844,183 @@ textarea {
         height: 44px;
     }
 }
+
+
+/* Стили для результатов поиска */
+#searchResult {
+    margin-top: 25px;
+    display: none;
+}
+
+/* Карточка слова пользователя */
+.user-word-card {
+    border: 3px solid #2e7d32;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 25px;
+    position: relative;
+    background: white;
+    box-shadow: 0 4px 15px rgba(46, 125, 50, 0.1);
+}
+
+.user-word-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #e8f5e9;
+    padding-bottom: 10px;
+}
+
+.user-word-text {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #2e7d32;
+    text-transform: lowercase;
+}
+
+.user-word-text::first-letter {
+    text-transform: uppercase;
+}
+
+.user-word-pos {
+    color: #888;
+    font-style: italic;
+    font-size: 1rem;
+}
+
+.user-word-translations {
+    margin-bottom: 30px;
+}
+
+.user-word-translations ol {
+    margin-left: 20px;
+    color: #5a5a5a;
+    line-height: 1.6;
+}
+
+.user-word-translations li {
+    margin-bottom: 5px;
+}
+
+.user-word-date {
+    position: absolute;
+    bottom: 10px;
+    right: 15px;
+    font-size: 0.8rem;
+    color: #888;
+}
+
+/* Слова других пользователей */
+.other-users-words {
+    margin-top: 30px;
+}
+
+.other-words-title {
+    color: #2e7d32;
+    margin-bottom: 15px;
+    font-size: 1.3rem;
+    border-bottom: 1px solid #e8f5e9;
+    padding-bottom: 8px;
+}
+
+.other-user-word {
+    border: 1px solid #e0d9c0;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #f8f9f5;
+}
+
+.other-user-word:hover {
+    background: #e8f5e9;
+    border-color: #2e7d32;
+    transform: translateY(-2px);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+}
+
+.other-word-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.other-word-text {
+    font-weight: 600;
+    color: #2e7d32;
+    font-size: 1.1rem;
+}
+
+.other-word-pos {
+    color: #888;
+    font-size: 0.9rem;
+    font-style: italic;
+}
+
+.other-word-stats {
+    display: flex;
+    gap: 15px;
+}
+
+.stat-item {
+    font-size: 0.85rem;
+    color: #666;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.stat-item i {
+    font-size: 0.8rem;
+}
+
+/* Сообщение когда нет результатов */
+.empty-message {
+    text-align: center;
+    padding: 40px 20px;
+    color: #888;
+    background: #f8f9f5;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+.empty-message .empty-icon {
+    font-size: 3rem;
+    color: #e0d9c0;
+    margin-bottom: 15px;
+}
+
+.empty-message h3 {
+    color: #5a5a5a;
+    font-weight: 600;
+}
+
+/* Мобильные стили */
+@media (max-width: 768px) {
+    .user-word-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .user-word-text {
+        font-size: 1.5rem;
+    }
+    
+    .other-word-main {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+    
+    .other-word-stats {
+        gap: 10px;
+    }
+    
+    .stat-item {
+        font-size: 0.8rem;
+    }
+}
