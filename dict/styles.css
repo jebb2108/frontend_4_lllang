@@ -109,6 +109,8 @@ body {
 .page-title {
     color: #2e7d32;
     margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #e8f5e9;
     font-size: 1.8rem;
     display: flex;
     align-items: center;
@@ -289,7 +291,7 @@ input:focus, select:focus, textarea:focus {
     align-items: center;
 }
 
-/* Карточка слова пользователя */
+/* Карточка слова пользователя в поиске */
 .user-word-card {
     border: 2px solid #2e7d32;
     border-radius: 8px;
@@ -345,7 +347,7 @@ input:focus, select:focus, textarea:focus {
     text-align: right;
 }
 
-/* Слова других пользователей */
+/* Слова других пользователей в поиске */
 .other-users-words {
     margin-top: 20px;
 }
@@ -477,6 +479,7 @@ table {
 }
 
 th, td { 
+    border-bottom: 1px solid #f0ede3; 
     padding: 15px; 
     text-align: left; 
 }
@@ -562,6 +565,7 @@ tr:hover {
     color: #757575;
     font-size: 0.9rem;
     background: #f8f9f5;
+    border-top: 1px solid #f0ede3;
     margin-top: auto;
 }
 
@@ -711,7 +715,7 @@ textarea {
     margin-top: 20px;
 }
 
-/* ===== КАРТОЧКИ СЛОВ ===== */
+/* ===== КАРТОЧКИ СЛОВ (ВЕСЬ СЛОВАРЬ) - ВОЗВРАЩЕНЫ СТАРЫЕ СТИЛИ ===== */
 .card-container {
     position: relative;
     min-height: 400px;
@@ -735,11 +739,13 @@ textarea {
     padding: 30px;
     transition: all 0.3s ease;
     margin-bottom: 15px;
+    background: linear-gradient(135deg, #fffdf6 0%, #f8f9f5 100%);
 }
 
 .word-card:hover {
     box-shadow: 0 12px 35px rgba(0,0,0,0.12);
     transform: translateY(-2px);
+    background: linear-gradient(135deg, #fffdf6 0%, #f0f7f0 100%);
 }
 
 .word-card-content {
@@ -752,6 +758,11 @@ textarea {
 .word-main {
     text-align: center;
     padding-bottom: 20px;
+    border-bottom: 2px solid #e8f5e9;
+    background: rgba(232, 245, 233, 0.3);
+    border-radius: 8px;
+    padding: 15px;
+    margin: -5px -5px 15px -5px;
 }
 
 .word-text {
@@ -760,6 +771,7 @@ textarea {
     color: #2e7d32;
     margin-bottom: 10px;
     text-transform: lowercase;
+    text-shadow: 0 2px 4px rgba(46,125,50,0.1);
 }
 
 .word-text::first-letter {
@@ -783,6 +795,8 @@ textarea {
     background: #f8f9f5;
     padding: 15px;
     border-radius: 8px;
+    border-left: 3px solid #2e7d32;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
 }
 
 .word-context h4 {
@@ -816,17 +830,20 @@ textarea {
     display: inline-flex;
     align-items: center;
     gap: 8px;
+    box-shadow: 0 4px 8px rgba(46,125,50,0.3);
 }
 
 .audio-btn:hover {
     background: #388e3c;
     transform: translateY(-1px);
+    box-shadow: 0 6px 12px rgba(46,125,50,0.4);
 }
 
 .audio-btn:disabled {
     background: #ccc;
     cursor: not-allowed;
     transform: none;
+    box-shadow: none;
 }
 
 .card-navigation {
@@ -835,6 +852,7 @@ textarea {
     align-items: center;
     margin-top: 25px;
     padding-top: 20px;
+    border-top: 1px solid #f0e6d2;
 }
 
 .nav-btn {
@@ -850,6 +868,7 @@ textarea {
     cursor: pointer;
     transition: all 0.3s ease;
     font-size: 1.2rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 .nav-btn:hover:not(:disabled) {
@@ -857,6 +876,7 @@ textarea {
     border-color: #2e7d32;
     color: white;
     transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(46,125,50,0.3);
 }
 
 .nav-btn:disabled {
@@ -868,6 +888,9 @@ textarea {
     color: #888;
     font-weight: 600;
     font-size: 0.9rem;
+    background: rgba(248, 245, 236, 0.7);
+    padding: 5px 10px;
+    border-radius: 15px;
 }
 
 .empty-state {
@@ -902,12 +925,16 @@ textarea {
     justify-content: center;
     width: 50px;
     height: 50px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(46,125,50,0.2);
 }
 
 .public-word-indicator:hover {
     opacity: 1;
     color: #1b5e20;
     transform: scale(1.1) rotate(10deg);
+    box-shadow: 0 4px 12px rgba(46,125,50,0.3);
 }
 
 .public-word-indicator i {
@@ -1051,6 +1078,19 @@ textarea {
     }
 
     /* Карточки на мобильных */
+    .word-card {
+        margin: 10px;
+        padding: 20px;
+        min-height: 300px;
+        margin-bottom: 15px;
+        order: 1;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+
+    .word-card:hover {
+        box-shadow: 0 6px 20px rgba(46,125,50,0.12);
+    }
+
     .word-text {
         font-size: 2rem;
     }
@@ -1064,26 +1104,9 @@ textarea {
         height: 45px;
     }
 
-    .card-container {
-        min-height: 300px;
-        padding: 10px 0;
-        justify-content: flex-start;
-    }
-    
-    .word-card {
-        margin: 10px;
-        padding: 20px;
-        min-height: 300px;
-        margin-bottom: 15px;
-        order: 1;
-    }
-    
-    .delete-word-btn {
-        padding: 8px 16px;
-        font-size: 0.85rem;
-        max-width: 180px;
-        margin: 0 auto 20px auto;
-        order: 2;
+    .word-main {
+        padding: 10px;
+        margin: -5px -5px 10px -5px;
     }
 
     .public-word-indicator {
