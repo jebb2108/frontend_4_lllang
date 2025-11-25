@@ -409,8 +409,12 @@ async function findTranslation() {
     const searchWordInput = document.getElementById('searchWord');
     if (!searchWordInput) return;
 
-    const word = searchWordInput.value.trim();
+    let word = searchWordInput.value.trim();
     if (!word) { showNotification('Введите слово для поиска', 'error'); return; }
+    
+    // Приводим слово к нижнему регистру перед отправкой
+    word = word.toLowerCase();
+    
     if (!currentUserId) { showNotification('Ошибка: Не указан user_id', 'error'); return; }
 
     const url = `${API_BASE_URL}/api/words/search?user_id=${encodeURIComponent(currentUserId)}&word=${encodeURIComponent(word)}`;
@@ -432,20 +436,24 @@ async function findTranslation() {
         searchResult.innerHTML = '';
 
         if (result) {
-            // 1) Слово пользователя в рамке
-            if (result.user_word) {
+            // 1) Слово пользователя в рамке - проверяем, что оно действительно существует
+            const hasValidUserWord = result.user_word && result.user_word.word && result.user_word.word.trim() !== '';
+            
+            if (hasValidUserWord) {
                 const userWordCard = createUserWordCard(result.user_word);
                 searchResult.appendChild(userWordCard);
             }
 
             // 2) Слова других пользователей
-            if (result.all_users_words && result.all_users_words.length > 0) {
-                const otherWordsContainer = createOtherUsersWords(result.all_users_words.slice(0, 3));
+            const hasOtherWords = result.all_users_words && Object.keys(result.all_users_words).length > 0;
+            
+            if (hasOtherWords) {
+                const otherWordsContainer = createOtherUsersWords(result.all_users_words);
                 searchResult.appendChild(otherWordsContainer);
             }
 
             // 3) Если ничего нет - сообщение
-            if (!result.user_word && (!result.all_users_words || result.all_users_words.length === 0)) {
+            if (!hasValidUserWord && !hasOtherWords) {
                 const emptyMessage = document.createElement('div');
                 emptyMessage.className = 'empty-message';
                 emptyMessage.innerHTML = `
