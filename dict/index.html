@@ -78,8 +78,15 @@
             
             <!-- SEARCH -->
             <section id="search-word" class="page">
-                <h2 class="page-title"><i class="fas fa-search"></i> Найди перевод другого человека </h2>
-                <div class="input-row">
+                <div class="search-header-default">
+                    <h2 class="page-title"><i class="fas fa-search"></i> Найди перевод другого человека </h2>
+                </div>
+                <div class="search-header-result" style="display: none;">
+                    <button id="refreshSearch" class="refresh-btn"><i class="fas fa-arrow-left"></i></button>
+                    <h2 class="searched-word" id="searchedWordTitle"></h2>
+                </div>
+
+                <div class="input-row" id="searchInputRow">
                     <div class="input-group" style="flex: 3;">
                         <input type="text" id="searchWord" placeholder="Введите слово для поиска" autocomplete="off" />
                     </div>

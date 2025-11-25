@@ -432,11 +432,16 @@ async function findTranslation() {
         const searchResult = document.getElementById('searchResult');
         if (!searchResult) return;
 
-        // Обновляем заголовок и скрываем поле ввода
-        document.querySelector('.search-header-default').style.display = 'none';
-        document.getElementById('searchInputRow').style.display = 'none';
-        document.querySelector('.search-header-result').style.display = 'flex';
-        document.getElementById('searchedWordTitle').textContent = word;
+        // Обновляем заголовок и скрываем поле ввода (с проверками)
+        const searchHeaderDefault = document.querySelector('.search-header-default');
+        const searchHeaderResult = document.querySelector('.search-header-result');
+        const searchInputRow = document.getElementById('searchInputRow');
+        const searchedWordTitle = document.getElementById('searchedWordTitle');
+
+        if (searchHeaderDefault) searchHeaderDefault.style.display = 'none';
+        if (searchHeaderResult) searchHeaderResult.style.display = 'flex';
+        if (searchInputRow) searchInputRow.style.display = 'none';
+        if (searchedWordTitle) searchedWordTitle.textContent = word;
 
         // Очищаем предыдущие результаты
         searchResult.innerHTML = '';
@@ -978,19 +983,19 @@ async function initializeApp() {
     }
 
     function resetSearchView() {
-    // Восстанавливаем исходное состояние поиска
-    document.querySelector('.search-header-default').style.display = 'block';
-    document.getElementById('searchInputRow').style.display = 'flex';
-    document.querySelector('.search-header-result').style.display = 'none';
-    
-    // Очищаем результаты
-    const searchResult = document.getElementById('searchResult');
-    searchResult.innerHTML = '';
-    searchResult.style.display = 'none';
-    
-    // Очищаем поле ввода
-    document.getElementById('searchWord').value = '';
-}
+        // Восстанавливаем исходное состояние поиска
+        document.querySelector('.search-header-default').style.display = 'block';
+        document.getElementById('searchInputRow').style.display = 'flex';
+        document.querySelector('.search-header-result').style.display = 'none';
+        
+        // Очищаем результаты
+        const searchResult = document.getElementById('searchResult');
+        searchResult.innerHTML = '';
+        searchResult.style.display = 'none';
+        
+        // Очищаем поле ввода
+        document.getElementById('searchWord').value = '';
+    }
 
     // 🔄 ИНИЦИАЛИЗАЦИЯ КАСТОМНЫХ КОМПОНЕНТОВ
     function initializeCustomComponents() {
