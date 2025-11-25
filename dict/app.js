@@ -487,14 +487,14 @@ async function findTranslation() {
 
             searchResult.style.display = 'block';
         } else {
-            // Если результат null
+            // Убрали блок "Слово не найдено в словаре"
             const emptyMessage = document.createElement('div');
             emptyMessage.className = 'empty-message';
             emptyMessage.innerHTML = `
                 <div class="empty-icon">
-                    <i class="fas fa-search"></i>
+                    <i class="fas fa-bullhorn"></i>
                 </div>
-                <h3>Слово не найдено в словаре</h3>
+                <h3>Будьте первыми, кто сделает запись этого слова публичным!</h3>
             `;
             searchResult.appendChild(emptyMessage);
             searchResult.style.display = 'block';
@@ -561,7 +561,7 @@ function createOtherUsersWords(wordsDict) {
     wordsEntries.forEach(([username, wordData]) => {
         // Проверяем, что слово валидно
         if (wordData && wordData.word && wordData.word.trim() !== '') {
-            const wordElement = createOtherUserWord(wordData);
+            const wordElement = createOtherUserWord(wordData, username);
             container.appendChild(wordElement);
         }
     });
@@ -569,20 +569,44 @@ function createOtherUsersWords(wordsDict) {
     return container;
 }
 
-function createOtherUserWord(wordData) {
+function createOtherUserWord(wordData, username) {
     const wordElement = document.createElement('div');
     wordElement.className = 'other-user-word';
     wordElement.setAttribute('data-word-id', wordData.id || '');
     
-    // Статистика (предполагаем структуру данных)
+    // Форматируем дату
+    let formattedDate = '';
+    if (wordData.created_at) {
+        const date = new Date(wordData.created_at);
+        if (!isNaN(date.getTime())) {
+            formattedDate = date.toLocaleDateString('ru-RU');
+        }
+    }
+    
+    // Статистика
     const likes = wordData.likes || 0;
     const dislikes = wordData.dislikes || 0;
     const comments = wordData.comments ? wordData.comments.length : 0;
     
+    // Получаем перевод (может быть массивом или строкой)
+    let translationText = '';
+    if (Array.isArray(wordData.translation)) {
+        translationText = wordData.translation.slice(0, 1).join(', '); // Берем первый перевод
+    } else if (typeof wordData.translation === 'string') {
+        translationText = wordData.translation;
+    }
+    
     wordElement.innerHTML = `
         <div class="other-word-main">
-            <span class="other-word-text">${escapeHTML(wordData.word)}</span>
-            <span class="other-word-pos">${getPartOfSpeechName(wordData.part_of_speech)}</span>
+            <div class="other-word-header">
+                <span class="other-word-text">${escapeHTML(wordData.word)}</span>
+                <span class="other-word-pos">${getPartOfSpeechName(wordData.part_of_speech)}</span>
+            </div>
+            <div class="other-word-translation">${escapeHTML(translationText)}</div>
+        </div>
+        <div class="other-word-meta">
+            <span class="other-word-username">@${escapeHTML(username)}</span>
+            ${formattedDate ? `<span class="other-word-date">${formattedDate}</span>` : ''}
         </div>
         <div class="other-word-stats">
             <span class="stat-item"><i class="fas fa-thumbs-up"></i> ${likes}</span>
@@ -600,6 +624,7 @@ function createOtherUserWord(wordData) {
     
     return wordElement;
 }
+
 
 // --- Delete word ---
 async function deleteWord(wordId) {

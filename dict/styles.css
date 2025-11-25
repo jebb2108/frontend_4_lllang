@@ -353,17 +353,7 @@ input:focus, select:focus, textarea:focus {
 }
 
 /* Слова других пользователей */
-.other-users-words {
-    margin-top: 20px;
-}
-
-.other-words-title {
-    color: #2e7d32;
-    margin-bottom: 12px;
-    font-size: 1.1rem;
-    font-weight: 600;
-}
-
+/* Обновленные стили для слов других пользователей */
 .other-user-word {
     border: 1px solid #e0d9c0;
     border-radius: 6px;
@@ -383,8 +373,16 @@ input:focus, select:focus, textarea:focus {
 .other-word-main {
     display: flex;
     justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+    gap: 10px;
+}
+
+.other-word-header {
+    display: flex;
     align-items: center;
-    margin-bottom: 6px;
+    gap: 8px;
+    flex: 1;
 }
 
 .other-word-text {
@@ -397,6 +395,30 @@ input:focus, select:focus, textarea:focus {
     color: #888;
     font-size: 0.85rem;
     font-style: italic;
+}
+
+.other-word-translation {
+    color: #5a5a5a;
+    font-size: 0.9rem;
+    flex: 1;
+    text-align: right;
+}
+
+.other-word-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 0.75rem;
+    color: #999;
+}
+
+.other-word-username {
+    font-style: italic;
+}
+
+.other-word-date {
+    color: #888;
 }
 
 .other-word-stats {
@@ -1072,5 +1094,26 @@ textarea {
 
     .refresh-btn {
         align-self: center !important;
+    }
+
+    .other-word-main {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+    
+    .other-word-header {
+        width: 100%;
+    }
+    
+    .other-word-translation {
+        text-align: left;
+        width: 100%;
+    }
+    
+    .other-word-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 3px;
     }
 }
