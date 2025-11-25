@@ -432,6 +432,7 @@ async function findTranslation() {
         }
 
         const result = text ? JSON.parse(text) : null;
+        console.log('Результат поиска:', result); 
         const searchResult = document.getElementById('searchResult');
         if (!searchResult) return;
 
@@ -510,47 +511,26 @@ async function findTranslation() {
 }
 
 // Вспомогательные функции для создания элементов
-function createUserWordCard(userWord) {
-    const card = document.createElement('div');
-    card.className = 'user-word-card';
-    
-    // Форматируем дату
-    const date = new Date(userWord.created_at);
-    const formattedDate = date.toLocaleDateString('ru-RU');
-    
-    // Обрабатываем переводы
-    let translations = [];
-    if (Array.isArray(userWord.translation)) {
-        translations = userWord.translation.slice(0, 3);
-    } else if (typeof userWord.translation === 'string') {
-        translations = [userWord.translation];
-    }
-    
-    card.innerHTML = `
-        <div class="user-word-header">
-            <span class="user-word-text">${escapeHTML(userWord.word)}</span>
-            <span class="user-word-pos">${getPartOfSpeechName(userWord.part_of_speech)}</span>
-        </div>
-        <div class="user-word-translations">
-            <ol>
-                ${translations.map(trans => `<li>${escapeHTML(trans)}</li>`).join('')}
-            </ol>
-        </div>
-        <div class="user-word-date">${formattedDate}</div>
-    `;
-    
-    return card;
-}
-
 function createOtherUsersWords(wordsDict) {
     const container = document.createElement('div');
     container.className = 'other-users-words';
     
-    // Получаем массив значений (объектов слов) и берем первые 3
-    const wordsArray = Object.values(wordsDict || {}).slice(0, 3);
+    console.log('🔧 Обрабатываем слова других пользователей:', wordsDict);
+
+    // Если wordsDict - это массив, обрабатываем как массив
+    let wordsArray = [];
+    if (Array.isArray(wordsDict)) {
+        wordsArray = wordsDict.slice(0, 3);
+    } else if (wordsDict && typeof wordsDict === 'object') {
+        // Если это объект, преобразуем в массив
+        wordsArray = Object.values(wordsDict).slice(0, 3);
+    }
     
+    console.log('📝 Отфильтрованный массив слов:', wordsArray);
+
     if (wordsArray.length === 0) {
-        return container; // Возвращаем пустой контейнер
+        console.log('❌ Нет слов для отображения');
+        return container;
     }
     
     const title = document.createElement('h3');
@@ -559,14 +539,19 @@ function createOtherUsersWords(wordsDict) {
     container.appendChild(title);
     
     // Создаем элементы для каждого слова
-    wordsArray.forEach(wordData => {
-        // Проверяем, что слово валидно и есть nickname
-        if (wordData && wordData.word && wordData.word.trim() !== '' && wordData.nickname) {
+    wordsArray.forEach((wordData, index) => {
+        console.log(`🔤 Обрабатываем слово ${index + 1}:`, wordData);
+        
+        // Проверка валидности слова
+        if (wordData && wordData.word && wordData.word.trim() !== '') {
             const wordElement = createOtherUserWord(wordData);
             container.appendChild(wordElement);
+        } else {
+            console.warn('❌ Пропущено невалидное слово:', wordData);
         }
     });
     
+    console.log('✅ Итоговый контейнер:', container.children.length, 'элементов');
     return container;
 }
 
@@ -575,6 +560,8 @@ function createOtherUserWord(wordData) {
     wordElement.className = 'other-user-word';
     wordElement.setAttribute('data-word-id', wordData.id || '');
     
+    console.log('🎨 Создаем элемент для слова:', wordData);
+
     // Форматируем дату
     let formattedDate = '';
     if (wordData.created_at) {
@@ -584,18 +571,24 @@ function createOtherUserWord(wordData) {
         }
     }
     
-    // Статистика
-    const likes = wordData.likes || '';
-    const dislikes = wordData.dislikes || '';
-    const comments = wordData.comments ? wordData.comments.length : '';
+    // Статистика с значениями по умолчанию
+    const likes = wordData.likes || wordData.likes_count || 0;
+    const dislikes = wordData.dislikes || wordData.dislikes_count || 0;
+    const comments = wordData.comments ? wordData.comments.length : (wordData.comments_count || 0);
     
-    // Получаем перевод
+    // Получаем перевод 
     let translationText = '';
     if (Array.isArray(wordData.translation)) {
-        translationText = wordData.translation.slice(0, 1).join(', '); // Берем первый перевод
+        translationText = wordData.translation.slice(0, 1).join(', ');
     } else if (typeof wordData.translation === 'string') {
         translationText = wordData.translation;
+    } else if (wordData.translations && Array.isArray(wordData.translations)) {
+        // Альтернативное поле translations
+        translationText = wordData.translations.slice(0, 1).join(', ');
     }
+    
+    // Получаем nickname или используем значение по умолчанию
+    const nickname = wordData.nickname || wordData.username || 'Аноним';
     
     wordElement.innerHTML = `
         <div class="other-word-first-line">
@@ -612,7 +605,7 @@ function createOtherUserWord(wordData) {
                 <span class="stat-item"><i class="fas fa-comments"></i> ${comments}</span>
             </div>
             <div class="other-word-meta">
-                <span class="other-word-username">@${escapeHTML(wordData.nickname)}</span>
+                <span class="other-word-username">@${escapeHTML(nickname)}</span>
                 ${formattedDate ? `<span class="other-word-date">${formattedDate}</span>` : ''}
             </div>
         </div>
@@ -620,7 +613,7 @@ function createOtherUserWord(wordData) {
     
     // Обработчик клика для перехода на детальную страницу
     wordElement.addEventListener('click', function() {
-        console.log('Переход к слову:', wordData);
+        console.log('🔗 Переход к слову:', wordData);
         // window.location.href = `/word-details.html?word_id=${wordData.id}`;
     });
     
