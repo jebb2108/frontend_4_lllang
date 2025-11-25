@@ -420,9 +420,12 @@ async function findTranslation() {
     const url = `${API_BASE_URL}/api/words/search?user_id=${encodeURIComponent(currentUserId)}&word=${encodeURIComponent(word)}`;
     try {
         if (loadingOverlay) loadingOverlay.style.display = 'flex';
-        const response = await fetch(url, { headers: { 'Accept': 'application/json' }, credentials: isSameOrigin(API_BASE_URL) ? 'include' : 'omit' });
+        const response = await fetch(url, { 
+            headers: { 'Accept': 'application/json' }, 
+            credentials: isSameOrigin(API_BASE_URL) ? 'include' : 'omit' 
+        });
 
-        const text = await response.text().catch(()=>null);
+        const text = await response.text().catch(() => null);
         if (!response.ok) {
             console.error('findTranslation bad response', response.status, text);
             throw new Error(`Ошибка HTTP: ${response.status}`);
@@ -432,7 +435,7 @@ async function findTranslation() {
         const searchResult = document.getElementById('searchResult');
         if (!searchResult) return;
 
-        // Обновляем заголовок и скрываем поле ввода (с проверками)
+        // Обновляем заголовок и скрываем поле ввода
         const searchHeaderDefault = document.querySelector('.search-header-default');
         const searchHeaderResult = document.querySelector('.search-header-result');
         const searchInputRow = document.getElementById('searchInputRow');
@@ -463,7 +466,6 @@ async function findTranslation() {
             
             if (hasOtherWords) {
                 const otherWordsContainer = createOtherUsersWords(result.all_users_words);
-                // Проверяем, что контейнер не пустой (мог стать пустым после фильтрации)
                 if (otherWordsContainer.children.length > 0) {
                     searchResult.appendChild(otherWordsContainer);
                 }
@@ -487,7 +489,6 @@ async function findTranslation() {
 
             searchResult.style.display = 'block';
         } else {
-            // Убрали блок "Слово не найдено в словаре"
             const emptyMessage = document.createElement('div');
             emptyMessage.className = 'empty-message';
             emptyMessage.innerHTML = `
@@ -517,7 +518,7 @@ function createUserWordCard(userWord) {
     const date = new Date(userWord.created_at);
     const formattedDate = date.toLocaleDateString('ru-RU');
     
-    // Обрабатываем переводы (предполагаем, что это массив или строка)
+    // Обрабатываем переводы
     let translations = [];
     if (Array.isArray(userWord.translation)) {
         translations = userWord.translation.slice(0, 3);
@@ -545,10 +546,10 @@ function createOtherUsersWords(wordsDict) {
     const container = document.createElement('div');
     container.className = 'other-users-words';
     
-    // Получаем массив пар [username, wordData] и берем первые 3
-    const wordsEntries = Object.entries(wordsDict || {}).slice(0, 3);
+    // Получаем массив значений (объектов слов) и берем первые 3
+    const wordsArray = Object.values(wordsDict || {}).slice(0, 3);
     
-    if (wordsEntries.length === 0) {
+    if (wordsArray.length === 0) {
         return container; // Возвращаем пустой контейнер
     }
     
@@ -558,10 +559,10 @@ function createOtherUsersWords(wordsDict) {
     container.appendChild(title);
     
     // Создаем элементы для каждого слова
-    wordsEntries.forEach(([username, wordData]) => {
-        // Проверяем, что слово валидно
-        if (wordData && wordData.word && wordData.word.trim() !== '') {
-            const wordElement = createOtherUserWord(wordData, username);
+    wordsArray.forEach(wordData => {
+        // Проверяем, что слово валидно и есть nickname
+        if (wordData && wordData.word && wordData.word.trim() !== '' && wordData.nickname) {
+            const wordElement = createOtherUserWord(wordData);
             container.appendChild(wordElement);
         }
     });
@@ -569,7 +570,7 @@ function createOtherUsersWords(wordsDict) {
     return container;
 }
 
-function createOtherUserWord(wordData, username) {
+function createOtherUserWord(wordData) {
     const wordElement = document.createElement('div');
     wordElement.className = 'other-user-word';
     wordElement.setAttribute('data-word-id', wordData.id || '');
@@ -588,7 +589,7 @@ function createOtherUserWord(wordData, username) {
     const dislikes = wordData.dislikes || '';
     const comments = wordData.comments ? wordData.comments.length : '';
     
-    // Получаем перевод (может быть массивом или строкой)
+    // Получаем перевод
     let translationText = '';
     if (Array.isArray(wordData.translation)) {
         translationText = wordData.translation.slice(0, 1).join(', '); // Берем первый перевод
@@ -611,7 +612,7 @@ function createOtherUserWord(wordData, username) {
                 <span class="stat-item"><i class="fas fa-comments"></i> ${comments}</span>
             </div>
             <div class="other-word-meta">
-                <span class="other-word-username">@${escapeHTML(username)}</span>
+                <span class="other-word-username">@${escapeHTML(wordData.nickname)}</span>
                 ${formattedDate ? `<span class="other-word-date">${formattedDate}</span>` : ''}
             </div>
         </div>
@@ -619,7 +620,6 @@ function createOtherUserWord(wordData, username) {
     
     // Обработчик клика для перехода на детальную страницу
     wordElement.addEventListener('click', function() {
-        // Заглушка для перехода на детальную страницу
         console.log('Переход к слову:', wordData);
         // window.location.href = `/word-details.html?word_id=${wordData.id}`;
     });
