@@ -432,6 +432,12 @@ async function findTranslation() {
         const searchResult = document.getElementById('searchResult');
         if (!searchResult) return;
 
+        // Обновляем заголовок и скрываем поле ввода
+        document.querySelector('.search-header-default').style.display = 'none';
+        document.getElementById('searchInputRow').style.display = 'none';
+        document.querySelector('.search-header-result').style.display = 'flex';
+        document.getElementById('searchedWordTitle').textContent = word;
+
         // Очищаем предыдущие результаты
         searchResult.innerHTML = '';
 
@@ -448,18 +454,19 @@ async function findTranslation() {
 
             // 2) Слова других пользователей
             const hasOtherWords = result.all_users_words && 
-                    Object.keys(result.all_users_words).length > 0;
+                                Object.keys(result.all_users_words).length > 0;
             
             if (hasOtherWords) {
                 const otherWordsContainer = createOtherUsersWords(result.all_users_words);
-                // Проверяем, что контейнер не пустой
+                // Проверяем, что контейнер не пустой (мог стать пустым после фильтрации)
                 if (otherWordsContainer.children.length > 0) {
                     searchResult.appendChild(otherWordsContainer);
                 }
             }
 
             // 3) Если ничего нет - сообщение
-            const hasContent = hasValidUserWord || (hasOtherWords && searchResult.children.length > 0);
+            const hasContent = hasValidUserWord || 
+                             (hasOtherWords && searchResult.children.length > 0);
             
             if (!hasContent) {
                 const emptyMessage = document.createElement('div');
@@ -949,13 +956,17 @@ async function initializeApp() {
         }
 
         setupBookmarks();
-
+    
+        // Обработчики для добавления слова в словарь
         document.getElementById('addWordBtn')?.addEventListener('click', addWord);
-        document.getElementById('searchBtn')?.addEventListener('click', findTranslation);
 
         // Обработчики для навигации по карточкам
         document.getElementById('nextWordBtn')?.addEventListener('click', nextWord);
         document.getElementById('prevWordBtn')?.addEventListener('click', prevWord);
+
+        // Обработчик для кнопки возврата в поиске
+        document.getElementById('searchBtn')?.addEventListener('click', findTranslation);
+        document.getElementById('refreshSearch')?.addEventListener('click', resetSearchView);
 
         // Обработчик для кнопки удаления на карточке
         document.getElementById('deleteCardBtn')?.addEventListener('click', function() {
@@ -965,6 +976,21 @@ async function initializeApp() {
             }
         });
     }
+
+    function resetSearchView() {
+    // Восстанавливаем исходное состояние поиска
+    document.querySelector('.search-header-default').style.display = 'block';
+    document.getElementById('searchInputRow').style.display = 'flex';
+    document.querySelector('.search-header-result').style.display = 'none';
+    
+    // Очищаем результаты
+    const searchResult = document.getElementById('searchResult');
+    searchResult.innerHTML = '';
+    searchResult.style.display = 'none';
+    
+    // Очищаем поле ввода
+    document.getElementById('searchWord').value = '';
+}
 
     // 🔄 ИНИЦИАЛИЗАЦИЯ КАСТОМНЫХ КОМПОНЕНТОВ
     function initializeCustomComponents() {
