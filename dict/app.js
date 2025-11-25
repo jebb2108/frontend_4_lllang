@@ -605,9 +605,9 @@ function createOtherUserWord(wordData) {
     }
     
     // Статистика с значениями по умолчанию
-    const likes = wordData.likes || wordData.likes_count || 0;
-    const dislikes = wordData.dislikes || wordData.dislikes_count || 0;
-    const comments = wordData.comments ? wordData.comments.length : (wordData.comments_count || 0);
+    const likes = wordData.likes || '';
+    const dislikes = wordData.dislikes || '';
+    const comments = wordData.comments || '';
     
     // Получаем перевод 
     let translationText = '';
@@ -621,7 +621,7 @@ function createOtherUserWord(wordData) {
     }
     
     // Получаем nickname или используем значение по умолчанию
-    const nickname = wordData.nickname || wordData.username || 'Аноним';
+    const nickname = wordData.nickname || 'anonimous';
     
     wordElement.innerHTML = `
         <div class="other-word-first-line">
