@@ -225,18 +225,196 @@ input:focus, select:focus, textarea:focus {
 /* ===== РЕЗУЛЬТАТЫ ПОИСКА ===== */
 #searchResult { 
     margin-top: 25px; 
-    padding: 25px; 
-    background: #f8f9f5; 
-    border-radius: 8px; 
-    border-left: 4px solid #2e7d32; 
     display: none; 
 }
 
-.result-card {
-    background: white;
+/* Стили для заголовка поиска */
+.search-header-default {
+    display: block;
+}
+
+.search-header-result {
+    display: none;
+    align-items: center;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #e8f5e9;
+}
+
+.refresh-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #2e7d32;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 50%;
+    transition: background-color 0.3s ease;
+    margin-right: 15px;
+}
+
+.refresh-btn:hover {
+    background-color: #e8f5e9;
+}
+
+.searched-word {
+    color: #2e7d32;
+    font-size: 1.8rem;
+    font-weight: 700;
+    text-align: center;
+    flex-grow: 1;
+    margin: 0;
+    text-transform: lowercase;
+}
+
+.searched-word::first-letter {
+    text-transform: uppercase;
+}
+
+/* Карточка слова пользователя */
+.user-word-card {
+    border: 2px solid #2e7d32;
     border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+    padding: 15px;
+    margin-bottom: 20px;
+    background: white;
+    width: 100%;
+    box-shadow: none;
+}
+
+.user-word-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.user-word-text {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #2e7d32;
+    text-transform: lowercase;
+}
+
+.user-word-text::first-letter {
+    text-transform: uppercase;
+}
+
+.user-word-pos {
+    color: #888;
+    font-size: 0.9rem;
+    font-style: italic;
+}
+
+.user-word-translations {
+    margin-bottom: 10px;
+}
+
+.user-word-translations ol {
+    margin-left: 15px;
+    color: #5a5a5a;
+    line-height: 1.4;
+    font-size: 0.9rem;
+}
+
+.user-word-translations li {
+    margin-bottom: 3px;
+}
+
+.user-word-date {
+    font-size: 0.8rem;
+    color: #888;
+    text-align: right;
+}
+
+/* Слова других пользователей */
+.other-users-words {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.other-words-title {
+    color: #2e7d32;
+    margin-bottom: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.other-user-word {
+    border: 1px solid #e0d9c0;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: white;
+    border-left: 1px solid #e0d9c0;
+}
+
+.other-user-word:hover {
+    border-color: #2e7d32;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.other-word-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.other-word-text {
+    font-weight: 600;
+    color: #2e7d32;
+    font-size: 1rem;
+}
+
+.other-word-pos {
+    color: #888;
+    font-size: 0.85rem;
+    font-style: italic;
+}
+
+.other-word-stats {
+    display: flex;
+    gap: 12px;
+}
+
+.stat-item {
+    font-size: 0.8rem;
+    color: #666;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.stat-item i {
+    font-size: 0.75rem;
+}
+
+/* Сообщение когда нет результатов */
+.empty-message {
+    text-align: center;
+    padding: 40px 20px;
+    color: #888;
+    background: #f8f9f5;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+.empty-message .empty-icon {
+    font-size: 3rem;
+    color: #e0d9c0;
+    margin-bottom: 15px;
+}
+
+.empty-message h3 {
+    color: #5a5a5a;
+    font-weight: 600;
 }
 
 /* ===== ТАБЛИЦЫ ===== */
@@ -843,184 +1021,32 @@ textarea {
         width: 44px;
         height: 44px;
     }
-}
 
-
-/* Стили для результатов поиска */
-#searchResult {
-    margin-top: 25px;
-    display: none;
-}
-
-/* Карточка слова пользователя */
-.user-word-card {
-    border: 3px solid #2e7d32;
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 25px;
-    position: relative;
-    background: white;
-    box-shadow: 0 4px 15px rgba(46, 125, 50, 0.1);
-}
-
-.user-word-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-    border-bottom: 2px solid #e8f5e9;
-    padding-bottom: 10px;
-}
-
-.user-word-text {
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: #2e7d32;
-    text-transform: lowercase;
-}
-
-.user-word-text::first-letter {
-    text-transform: uppercase;
-}
-
-.user-word-pos {
-    color: #888;
-    font-style: italic;
-    font-size: 1rem;
-}
-
-.user-word-translations {
-    margin-bottom: 30px;
-}
-
-.user-word-translations ol {
-    margin-left: 20px;
-    color: #5a5a5a;
-    line-height: 1.6;
-}
-
-.user-word-translations li {
-    margin-bottom: 5px;
-}
-
-.user-word-date {
-    position: absolute;
-    bottom: 10px;
-    right: 15px;
-    font-size: 0.8rem;
-    color: #888;
-}
-
-/* Слова других пользователей */
-.other-users-words {
-    margin-top: 30px;
-}
-
-.other-words-title {
-    color: #2e7d32;
-    margin-bottom: 15px;
-    font-size: 1.3rem;
-    border-bottom: 1px solid #e8f5e9;
-    padding-bottom: 8px;
-}
-
-.other-user-word {
-    border: 1px solid #e0d9c0;
-    border-radius: 8px;
-    padding: 15px;
-    margin-bottom: 12px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    background: #f8f9f5;
-}
-
-.other-user-word:hover {
-    background: #e8f5e9;
-    border-color: #2e7d32;
-    transform: translateY(-2px);
-    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-}
-
-.other-word-main {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-}
-
-.other-word-text {
-    font-weight: 600;
-    color: #2e7d32;
-    font-size: 1.1rem;
-}
-
-.other-word-pos {
-    color: #888;
-    font-size: 0.9rem;
-    font-style: italic;
-}
-
-.other-word-stats {
-    display: flex;
-    gap: 15px;
-}
-
-.stat-item {
-    font-size: 0.85rem;
-    color: #666;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.stat-item i {
-    font-size: 0.8rem;
-}
-
-/* Сообщение когда нет результатов */
-.empty-message {
-    text-align: center;
-    padding: 40px 20px;
-    color: #888;
-    background: #f8f9f5;
-    border-radius: 8px;
-    margin-top: 20px;
-}
-
-.empty-message .empty-icon {
-    font-size: 3rem;
-    color: #e0d9c0;
-    margin-bottom: 15px;
-}
-
-.empty-message h3 {
-    color: #5a5a5a;
-    font-weight: 600;
-}
-
-/* Мобильные стили */
-@media (max-width: 768px) {
-    .user-word-header {
+    /* Стили для поиска на мобильных */
+    .search-header-result {
         flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
+        gap: 10px;
+        text-align: center;
     }
     
-    .user-word-text {
+    .refresh-btn {
+        align-self: flex-start;
+        margin-right: 0;
+    }
+    
+    .searched-word {
         font-size: 1.5rem;
     }
     
-    .other-word-main {
+    .user-word-header {
         flex-direction: column;
         align-items: flex-start;
         gap: 5px;
     }
     
-    .other-word-stats {
-        gap: 10px;
-    }
-    
-    .stat-item {
-        font-size: 0.8rem;
+    .other-word-main {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 3px;
     }
 }
