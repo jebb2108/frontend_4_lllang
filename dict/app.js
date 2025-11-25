@@ -511,6 +511,39 @@ async function findTranslation() {
 }
 
 // Вспомогательные функции для создания элементов
+function createUserWordCard(userWord) {
+    const card = document.createElement('div');
+    card.className = 'user-word-card';
+    
+    // Форматируем дату
+    const date = new Date(userWord.created_at);
+    const formattedDate = date.toLocaleDateString('ru-RU');
+    
+    // Обрабатываем переводы (предполагаем, что это массив или строка)
+    let translations = [];
+    if (Array.isArray(userWord.translation)) {
+        translations = userWord.translation.slice(0, 3);
+    } else if (typeof userWord.translation === 'string') {
+        translations = [userWord.translation];
+    }
+    
+    card.innerHTML = `
+        <div class="user-word-header">
+            <span class="user-word-text">${escapeHTML(userWord.word)}</span>
+            <span class="user-word-pos">${getPartOfSpeechName(userWord.part_of_speech)}</span>
+        </div>
+        <div class="user-word-translations">
+            <ol>
+                ${translations.map(trans => `<li>${escapeHTML(trans)}</li>`).join('')}
+            </ol>
+        </div>
+        <div class="user-word-date">${formattedDate}</div>
+    `;
+    
+    return card;
+}
+
+// Вспомогательные функции для создания элементов
 function createOtherUsersWords(wordsDict) {
     const container = document.createElement('div');
     container.className = 'other-users-words';
