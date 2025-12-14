@@ -1,0 +1,20 @@
+[project]
+name = "web-app-service"
+version = "0.1.0"
+description = "Frontend & Backend Server"
+authors = [
+    {name = "Gabriel Bouchard",email = "gabouchard2002@gmail.com"}
+]
+readme = "README.md"
+requires-python = "3.13.3"
+dependencies = [
+    "fastapi (>=0.124.4,<0.125.0)",
+    "pydantic (>=2.12.5,<3.0.0)",
+    "colorama (>=0.4.6,<0.5.0)",
+    "jwt (>=1.4.0,<2.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

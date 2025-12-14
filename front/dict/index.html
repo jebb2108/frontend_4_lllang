@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Словарь Telegram-бота</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+    <div class="book-container">
+        <div class="content-area">
+            <header class="book-header">
+                <div class="book-title"><i class="fas fa-book"></i> Мой словарь</div>
+            </header>
+
+            <div class="loading-overlay" id="loadingOverlay">
+                <div class="spinner"></div>
+            </div>
+
+            <!-- ADD WORD -->
+            <section id="add-word" class="page active">
+                <div class="form-group">
+                    <div class="word-input-container">
+                        <div class="input-group">
+                            <label for="newWord"><i class="fas fa-font"></i> Новое слово</label>
+                            <div class="input-with-voice">
+                                <input type="text" id="newWord" placeholder="Введите слово" autocomplete="off" />
+                                <button type="button" id="voiceRecordBtn" class="voice-record-btn">
+                                    <i class="fas fa-microphone"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="privacy-btn-container">
+                            <label class="privacy-btn">
+                                <input type="checkbox" id="wordPublic">
+                                <i class="fas fa-globe"></i>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="translation"><i class="fas fa-language"></i> Перевод слову</label>
+                    <input type="text" id="translation" placeholder="Введите перевод" autocomplete="off" />
+                </div>
+
+                <div class="form-group">
+                    <div class="custom-select">
+                        <label><i class="fas fa-tag"></i> Часть речи</label>
+                        <div class="select-display" id="partOfSpeechDisplay">
+                            <span>Существительное</span>
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                        <select id="partOfSpeech" style="display: none;">
+                            <option value="">Выбрать часть речи</option> <!-- Добавленная строка -->
+                            <option value="noun">Существительное</option>
+                            <option value="verb">Глагол</option>
+                            <option value="adjective">Прилагательное</option>
+                            <option value="adverb">Наречие</option>
+                            <option value="other">Другое</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group context-group">
+                    <label for="context">
+                        <i class="fas fa-comment"></i> Контекст 
+                        <span class="optional-text">(необязательно)</span>
+                    </label>
+                    <textarea id="context" placeholder="Введите контекст использования слова" rows="4"></textarea>
+                </div>
+
+                <div class="add-button-container">
+                    <button class="btn" id="addWordBtn"><i class="fas fa-plus"></i> Добавить в словарь</button>
+                </div>
+            </section>
+
+            <!-- SEARCH -->
+            <section id="search-word" class="page">
+                <div class="search-header-default">
+                    <h2 class="page-title"><i class="fas fa-search"></i> Найди перевод другого человека </h2>
+                </div>
+                
+                <div class="search-header-result" style="display: none;">
+                    <button id="refreshSearch" class="refresh-btn"><i class="fas fa-arrow-left"></i></button>
+                    <div class="searched-word-container">
+                        <h2 class="searched-word" id="searchedWordTitle"></h2>
+                    </div>
+                </div>
+
+                <div class="input-row" id="searchInputRow">
+                    <div class="input-group" style="flex: 3;">
+                        <input type="text" id="searchWord" placeholder="Введите слово для поиска" autocomplete="off" />
+                    </div>
+                    <button class="btn" id="searchBtn" style="flex: 1;"><i class="fas fa-search"></i> Найти</button>
+                </div>
+
+                <div id="searchResult" style="display: none;">
+                    <!-- Результаты будут добавляться динамически через JavaScript -->
+                </div>
+            </section>
+
+            <!-- ALL WORDS -->
+            <section id="all-words" class="page">
+                <div class="card-container" id="wordsCardContainer">
+                    <div class="loading-overlay" id="wordsLoading"><div class="spinner"></div></div>
+        
+                    <div class="word-card" id="wordCard" style="display: none;">
+                        <div class="word-card-content">
+                            <div class="word-main">
+                                <h3 class="word-text" id="cardWord"></h3>
+                                <div class="word-translation" id="cardTranslation"></div>
+                                <div class="word-pos" id="cardPos"></div>
+                            </div>
+                
+                            <div class="word-context" id="cardContextContainer">
+                                <h4>Контекст:</h4>
+                                <p class="context-text" id="cardContext"></p>
+                            </div>
+                
+                            <div class="word-audio" id="cardAudioContainer">
+                                <button class="audio-btn" id="playAudioBtn">
+                                    <i class="fas fa-play"></i> Воспроизвести
+                                </button>
+                            </div>
+                        </div>
+            
+                        <div class="card-navigation">
+                            <button class="nav-btn prev-btn" id="prevWordBtn">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <div class="card-counter" id="cardCounter"></div>
+                            <button class="nav-btn next-btn" id="nextWordBtn">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+        
+                    <!-- Новая кнопка удаления под карточкой -->
+                    <button class="delete-word-btn" id="deleteCardBtn" style="display: none;">
+                       <i class="fas fa-trash"></i> Удалить из словаря
+                    </button>
+        
+                    <div class="empty-state" id="emptyState" style="display: none;">
+                        <div class="empty-icon">
+                            <i class="fas fa-book-open"></i>
+                        </div>
+                        <h3>У вас пока нет слов в словаре</h3>
+                        <p>Добавьте первое слово на вкладке "Добавить слово"</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- STATISTICS -->
+            <section id="statistics" class="page">
+                <div class="result-card">
+                    <h3>Ваша статистика</h3>
+                    <div id="statsContent" style="text-align:center; padding:20px;">Загрузка статистики...</div>
+                </div>
+            </section>
+        </div>
+
+        <aside class="bookmarks-sidebar">
+            <div class="bookmark active" data-page="add-word"><i class="fas fa-plus-circle"></i> Добавить слово</div>
+            <div class="bookmark" data-page="search-word"><i class="fas fa-search"></i> Поиск слова</div>
+            <div class="bookmark" data-page="all-words"><i class="fas fa-book-open"></i> Весь словарь</div>
+            <div class="bookmark" data-page="statistics"><i class="fas fa-chart-bar"></i> Статистика</div>
+        </aside>
+    </div>
+
+    <div class="notification" id="notification"></div>
+    <script src="app.js"></script>
+</body>
+</html>
