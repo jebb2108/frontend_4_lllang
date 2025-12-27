@@ -1,7 +1,7 @@
 from datetime import date
 from typing import Union, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class Word(BaseModel):
@@ -26,6 +26,6 @@ class Profile(BaseModel):
     email: str = Field(..., description="Email пользователя")
     gender: str = Field(..., description="Пол пользователя")
     intro: str = Field(..., description="Краткая информация о пользователе")
-    birthday: date = Field(..., description="Дата рождения пользователя")
+    birthday: str = Field(..., description="Дата рождения пользователя (ISO format)")
     dating: Optional[bool] = Field(False, description="Согласие на дэйтинг")
     status: Optional[str] = Field('rookie', description="Видимый статус пользователя")

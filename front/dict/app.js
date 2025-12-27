@@ -64,7 +64,7 @@ async function loadWords() {
     console.info('loadWords: user_id=', currentUserId);
     if (wordsLoading) wordsLoading.style.display = 'flex';
 
-    const url = `${API_BASE_URL}/api/words?user_id=${encodeURIComponent(currentUserId)}&_=${Date.now()}`;
+    const url = `${API_BASE_URL}/api/words?user_id=${currentUserId}`;
     try {
         const response = await fetch(url, {
             headers: { 'Accept': 'application/json' },
@@ -273,7 +273,7 @@ async function loadStatistics() {
         statsContent.innerHTML = `
             <div style="display:flex; gap:20px; justify-content:center; flex-wrap:wrap; margin-top:20px;">
                 <div style="background:#e8f5e9; padding:15px; border-radius:10px; min-width:120px;">
-                    <div style="font-size:2rem; color:#2e7d32; font-weight:bold;">${escapeHTML(String(stats.total_words ?? 0))}</div>
+                    <div style="font-size:2rem; color:#2e7d32; font-weight:bold;">${escapeHTML(String(stats.total ?? 0))}</div>
                     <div>Всего слов</div>
                 </div>
                 <div style="background:#e8f5e9; padding:15px; border-radius:10px; min-width:120px;">
@@ -283,6 +283,18 @@ async function loadStatistics() {
                 <div style="background:#e8f5e9; padding:15px; border-radius:10px; min-width:120px;">
                     <div style="font-size:2rem; color:#2e7d32; font-weight:bold;">${escapeHTML(String(stats.verbs ?? 0))}</div>
                     <div>Глаголов</div>
+                </div>
+                <div style="background:#e8f5e9; padding:15px; border-radius:10px; min-width:120px;">
+                    <div style="font-size:2rem; color:#2e7d32; font-weight:bold;">${escapeHTML(String(stats.adjectives ?? 0))}</div>
+                    <div>Прилагательных</div>
+                </div>
+                <div style="background:#e8f5e9; padding:15px; border-radius:10px; min-width:120px;">
+                    <div style="font-size:2rem; color:#2e7d32; font-weight:bold;">${escapeHTML(String(stats.adverbs ?? 0))}</div>
+                    <div>Наречий</div>
+                </div>
+                <div style="background:#e8f5e9; padding:15px; border-radius:10px; min-width:120px;">
+                    <div style="font-size:2rem; color:#2e7d32; font-weight:bold;">${escapeHTML(String(stats.others ?? 0))}</div>
+                    <div>Другое</div>
                 </div>
             </div>
         `;
@@ -660,7 +672,7 @@ async function deleteWord(wordId) {
     if (!confirm('Вы уверены, что хотите удалить это слово?')) return;
     if (!currentUserId) { showNotification('Ошибка: Не указан user_id', 'error'); return; }
 
-    const url = `${API_BASE_URL}/api/words/${encodeURIComponent(wordId)}?user_id=${encodeURIComponent(currentUserId)}`;
+    const url = `${API_BASE_URL}/api/words/?user_id=${currentUserId}&word_id=${wordId}`;
     try {
         if (loadingOverlay) loadingOverlay.style.display = 'flex';
         const response = await fetch(url, { method: 'DELETE', headers: { 'Accept': 'application/json' }, credentials: isSameOrigin(API_BASE_URL) ? 'include' : 'omit' });

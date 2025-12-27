@@ -1,17 +1,27 @@
 import os
 from dataclasses import dataclass
 
+@dataclass
+class WorkerConfig:
+    host: str = os.getenv('WORKER_HOST')
+    port: int = int(os.getenv('WORKER_PORT'))
+    prefix: str = "/api/v0"
+
+    url: str = None
+
+    def __post_init__(self):
+        if not self.url: self.url=f'http://{self.host}:{self.port}'
+
 
 @dataclass
 class GatewayConfig:
-    _local: bool = bool(os.getenv('LOCAL_SERVER'))
     host: str = os.getenv('GATEWAY_HOST')
     port: int = int(os.getenv('GATEWAY_PORT'))
 
     url: str = None
 
     def __post_init__(self):
-        if not self.url: self.url=f'http{'s'if not self._local else''}://{self.host}:{self.port}'
+        if not self.url: self.url=f'http://{self.host}:{self.port}'
 
 @dataclass
 class Config:
@@ -24,9 +34,11 @@ class Config:
     secret_key: str = os.getenv('SECRET_KEY')
 
     gateway: "GatewayConfig" = None
+    worker: "WorkerConfig" = None
 
     def __post_init__(self):
         if not self.gateway: self.gateway = GatewayConfig()
+        if not self.worker: self.worker = WorkerConfig()
 
 
 config = Config()

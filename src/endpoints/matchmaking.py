@@ -1,121 +1,97 @@
 from typing import TYPE_CHECKING
 
 import httpx
-from fastapi import APIRouter, HTTPException
+from fastapi import HTTPException, APIRouter
 from fastapi.params import Query
 
 from src.config import config
 from src.dependencies import get_ws_connection
-from src.exc import FailToCreateToken
 from src.logconf import opt_logger as log
-from src.models import Profile
-from src.validators.tokens import create_token
+from src.models import UserIdRequest, MatchRequestModel
 
 if TYPE_CHECKING:
     from src.services.connection import ConnectionService
 
-router = APIRouter(prefix="/usr/v0")
-logger = log.setup_logger("endpoints")
+logger = log.setup_logger("matchmaking")
+
+router = APIRouter(prefix='/api/worker')
 
 
-@router.get("/check_user")
-async def check_user_handler(
-        user_id: str = Query(..., description="User ID")
-):
-    """Проверяет, существует ли пользователь в БД"""
-    try:
-        async with httpx.AsyncClient() as client:
-            url = config.gateway.url + f'/user_exists?user_id={user_id}'
-            resp = await client.get(url=url)
-            if resp.status_code == 200:
-                return {"user_exists": resp.json()}
-            else:
-                raise HTTPException(status_code=resp.status_code, detail=resp.text)
-
-    except Exception as e:
-        logger.error(f'Error in check_user_handler: {e}')
-        raise HTTPException(status_code=500, detail='Internal Server Error')
-
-
-
-@router.post("/register")
-async def register_user_handler(
-        user_data: Profile,
-):
-    # Сохранение в базу данных профиля пользователя
-    try:
-        async with httpx.AsyncClient() as client:
-            url = config.gateway.url + f'/update_profile'
-            resp = await client.post(url=url, content=user_data.model_dump_json())
-            if resp.status_code == 200:
-                return 200
-            else:
-                raise HTTPException(status_code=resp.status_code, detail=resp.text)
-
-    except Exception as e:
-        logger.error(f'Error in register_user_handler: {e}')
-        raise HTTPException(status_code=500, detail='Internal Server Error')
-
-
-@router.get("/user_info")
-async def get_user_info_handler(
-        user_id: int = Query(..., description="User ID")
-):
+@router.get('/check_match')
+async def check_match(user_id: int = Query(..., description="User ID")):
     async with httpx.AsyncClient() as client:
-        url = config.gateway.url + f'/users?user_id={user_id}&target_field=all'
+        url = config.worker.url + config.worker.prefix + \
+              f'/check_match?user_id={user_id}'
         resp = await client.get(url=url)
         if resp.status_code == 200:
-            user_info = resp.json()
-
-            return {
-                'user_id': user_id,
-                'username': user_info.get("username"),
-                'gender': user_info.get('gender'),
-                'criteria': {
-                    'language': user_info.get('language'),
-                    'fluency': user_info.get('fluency'),
-                    'topics': user_info.get('topics'),
-                    'dating': user_info.get('dating')
-                },
-                'lang_code': user_info.get('lang_code')
-            }
+            return resp.json()
         else:
-            raise HTTPException(status_code=resp.status_code, detail=resp.text)
+            return False
 
-@router.get("/create_token")
-async def create_token_handler(
-        user_id: int = Query(..., description="ID пользователя"),
-        room_id: str = Query(..., description="Уникальный идентификатор комнаты"),
-):
-    """ Обработчик создания токена """
+@router.get('/queue/status')
+async def get_queue_status():
+    async with httpx.AsyncClient() as client:
+        url = config.worker.url + config.worker.prefix + \
+            f'/queue/status'
+        resp = await client.get(url=url)
+        if resp.status_code == 200:
+            return resp.json()
+
+@router.get('/queue/{user_id}/status')
+async def get_queue_status(user_id: int):
+    async with httpx.AsyncClient() as client:
+        url = config.worker.url + config.worker.prefix + \
+            f'/queue/{user_id}/status'
+        resp = await client.get(url=url)
+        if resp.status_code == 200:
+            return resp.json()
+
+@router.post('/match/toggle')
+async def toggle_match_handler(request: UserIdRequest):
     try:
         async with httpx.AsyncClient() as client:
-            url = config.gateway.url + f'user_exists?user_id={user_id}'
+            url = config.gateway.url + f'/api/users?user_id={request.user_id}&target_field=all'
             resp = await client.get(url=url)
-            if resp.status_code == 200 and resp.json() is True:
-                resp = await client.get(url=config.gateway.url+f'users?user_id{user_id}&target_field=nickname')
-                nickname = resp.json().get('nickname')
-                # Создаю токен для аутентификации сессии
-                token = await create_token(user_id, nickname, room_id)
-                return {"token": token}
-            else:
-                raise HTTPException(
-                    status_code=resp.status_code, detail=resp.text
+            data = resp.json()
+            if data and resp.status_code == 200:
+                user_data= {
+                    'user_id': request.user_id,
+                    'username': data.get("username"),
+                    'gender': data.get('gender'),
+                    'criteria': {
+                        'language': data.get('language'),
+                        'fluency': data.get('fluency'),
+                        'topics': data.get('topics'),
+                        'dating': data.get('dating')
+                    },
+                    'lang_code': data.get('lang_code'),
+                    'action': 'join'
+                }
+                match_request = MatchRequestModel(**user_data)
+                url = config.worker.url + config.worker.prefix + '/match/toggle'
+
+                # Добавляем таймаут и заголовки
+                resp = await client.post(
+                    url=url,
+                    content=match_request.model_dump_json(),
+                    headers={"Content-Type": "application/json"},
+                    timeout=30.0
                 )
 
-    except FailToCreateToken:
-        raise HTTPException(status_code=500, detail="Error creating token")
+                if resp.status_code == 200:
+                    return resp.json()
+                else:
+                    raise HTTPException(
+                        status_code=resp.status_code,
+                        detail=resp.text
+                    )
 
     except Exception as e:
-        logger.error(f"Error in create_token_handler: {e}")
-        raise HTTPException(status_code=500, detail="Internal Server Error")
+        logger.error(f"Error notifying session end: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-
-
-
-###### HTTP endpoints для взаимодействия с чатом! ######
-
+###### HTTP endpoints для взаимодействия с чатом ######
 @router.get("/chat/rooms/{room_id}/status")
 async def get_room_status(room_id: str):
     """Получение статуса комнаты"""

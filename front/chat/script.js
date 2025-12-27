@@ -1,5 +1,5 @@
-const API_BASE_URL = 'https://chat.lllang.site/api/user';
-const API_WORKER_URL = 'https://chat.lllang.site/api/worker'
+const API_BASE_URL = `${window.location.origin}/api/user` || 'https://chat.lllang.site/api/user';
+const API_WORKER_URL = `${window.location.origin}/api/worker` || 'https://chat.lllang.site/api/worker'
 
 // Массив креативных сообщений о поиске
 const searchMessages = [
@@ -29,7 +29,7 @@ async function getUserId() {
     
     // 2. Если не получилось, извлекаем из URL
     if (!userId) {
-        userId = getUserIdFromURL();
+        userId = await getUserIdFromUrl();
     }
     
     return userId;
@@ -76,28 +76,17 @@ async function getUserIdFromTelegram() {
     });
 }
 
-function getUserIdFromURL() {
+async function getUserIdFromUrl() {
     try {
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        const tgWebAppData = hashParams.get('tgWebAppData');
-        
-        if (tgWebAppData) {
-            const dataParams = new URLSearchParams(tgWebAppData);
-            const userParam = dataParams.get('user');
-            
-            if (userParam) {
-                const decodedUser = decodeURIComponent(userParam);
-                const userData = JSON.parse(decodedUser);
-                
-                if (userData && userData.id) {
-                    return String(userData.id);
-                }
-            }
+        const urlParams = new URLSearchParams(window.location.search);
+        const userId = urlParams.get('user_id');
+        if (userId) {
+            console.log('✅ USER ID найден в URL параметрах:', userId);
+            return userId;
         }
     } catch (error) {
-        console.error('Ошибка при извлечении данных из URL:', error);
+        console.error('❌ Ошибка при извлечении user_id из URL:', error);
     }
-    
     return null;
 }
 
@@ -284,21 +273,6 @@ async function toggleQueue() {
         if (!userId) {
             throw new Error('Не удалось определить ID пользователя');
         }
-
-        // Получаем информацию о пользователе
-        const userInfoResponse = await fetch(`${API_BASE_URL}/user_info/${userId}`, {
-            method: 'GET',
-            headers: { 
-                'Accept': 'application/json'
-            }
-        });
-
-        if (!userInfoResponse.ok) {
-            throw new Error(`Ошибка получения данных пользователя: ${userInfoResponse.status}`);
-        }
-
-        const userInfo = await userInfoResponse.json();
-
         // Отправляем запрос в worker API
         const response = await fetch(`${API_WORKER_URL}/match/toggle`, {
             method: 'POST',
@@ -308,11 +282,6 @@ async function toggleQueue() {
             },
             body: JSON.stringify({
                 user_id: userId,
-                username: userInfo.username,
-                gender: userInfo.gender,
-                criteria: userInfo.criteria,
-                lang_code: userInfo.lang_code,
-                action: 'join'
             })
         });
 
@@ -320,18 +289,10 @@ async function toggleQueue() {
             throw new Error(`Authorization error: status ${response.status}`);
         }
         
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        if (data.status === 'accepted') {
-            // После успешного запроса проверяем статус
-            await checkUserStatus();
-            showError('');
+        if (response.ok) {
+            await checkUserStatus()
         } else {
-            throw new Error(data.message || 'Unknown error');
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
         
     } catch (error) {
@@ -713,7 +674,7 @@ document.addEventListener('DOMContentLoaded', function() {
             email: document.getElementById('email').value,
             birthday: document.getElementById('birth_date').value,
             gender: genderInput.value,
-            about: document.getElementById('about').value,
+            intro: document.getElementById('about').value,
             dating: romanticInterest.checked,
             location: shareLocationBtn.dataset.location ? 
                 JSON.parse(shareLocationBtn.dataset.location) : null
@@ -725,7 +686,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             const response = await fetch(`${API_BASE_URL}/register`, {
-                method: 'POST',
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                 },

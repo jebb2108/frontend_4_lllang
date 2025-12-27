@@ -4,6 +4,7 @@ from starlette.middleware.cors import CORSMiddleware
 
 from src.config import config
 from src.endpoints.dictionary import router as dictionary
+from src.endpoints.waiting_room import router as wait_router
 from src.endpoints.matchmaking import router as match_router
 from src.endpoints.websockets import router as websockets
 
@@ -23,6 +24,7 @@ app.add_middleware(
 
 # Подключаем роутеры
 app.include_router(dictionary)
+app.include_router(wait_router)
 app.include_router(match_router)
 app.include_router(websockets)
 
